@@ -1,0 +1,116 @@
+{
+  "main.py": {
+    "mtime": 1789060327.1923132,
+    "seen": 1789069191.759955,
+    "ast_hash": "8d96b4b54f913f3aa9d3b1f525e5dd26",
+    "semantic_hash": "8d96b4b54f913f3aa9d3b1f525e5dd26"
+  },
+  "settings.py": {
+    "mtime": 1789060325.8392963,
+    "seen": 1789069191.759957,
+    "ast_hash": "f2ae952bcd13c39d7ad21859d8b4af0c",
+    "semantic_hash": "f2ae952bcd13c39d7ad21859d8b4af0c"
+  },
+  "src/Camera.py": {
+    "mtime": 1789060330.9121203,
+    "seen": 1789069191.759958,
+    "ast_hash": "7c7101c33cba607c3e59371f944348d4",
+    "semantic_hash": "7c7101c33cba607c3e59371f944348d4"
+  },
+  "src/Game.py": {
+    "mtime": 1789060330.0276875,
+    "seen": 1789069191.759959,
+    "ast_hash": "febc4f9f0ace5d428e00a2664bddc3a2",
+    "semantic_hash": "febc4f9f0ace5d428e00a2664bddc3a2"
+  },
+  "src/__init__.py": {
+    "mtime": 1789060335.6396756,
+    "seen": 1789069191.759959,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "src/entities/__init__.py": {
+    "mtime": 1789060333.069623,
+    "seen": 1789069191.7599602,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "src/items/__init__.py": {
+    "mtime": 1789060333.7201126,
+    "seen": 1789069191.7599611,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "src/map/__init__.py": {
+    "mtime": 1789060334.3465295,
+    "seen": 1789069191.7599611,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "src/states/BaseState.py": {
+    "mtime": 1789060331.81607,
+    "seen": 1789069191.759962,
+    "ast_hash": "078e9f4a488e0a8088014fccd5b7df70",
+    "semantic_hash": "078e9f4a488e0a8088014fccd5b7df70"
+  },
+  "src/states/GameOverState.py": {
+    "mtime": 1789060344.861783,
+    "seen": 1789069191.7599628,
+    "ast_hash": "42e96e7af36d858846a892235408b488",
+    "semantic_hash": "42e96e7af36d858846a892235408b488"
+  },
+  "src/states/PauseState.py": {
+    "mtime": 1789060343.01698,
+    "seen": 1789069191.7599628,
+    "ast_hash": "261afe339562b21b895c9e072585074d",
+    "semantic_hash": "261afe339562b21b895c9e072585074d"
+  },
+  "src/states/PlayState.py": {
+    "mtime": 1789060341.1470737,
+    "seen": 1789069191.759964,
+    "ast_hash": "4a8f9d9be82082f08fdabb6ddc0351dd",
+    "semantic_hash": "4a8f9d9be82082f08fdabb6ddc0351dd"
+  },
+  "src/states/TitleState.py": {
+    "mtime": 1789060339.2794573,
+    "seen": 1789069191.759964,
+    "ast_hash": "f97494ff0f7e3de646cfcf5dd7f865d0",
+    "semantic_hash": "f97494ff0f7e3de646cfcf5dd7f865d0"
+  },
+  "src/states/VictoryState.py": {
+    "mtime": 1789060346.8389118,
+    "seen": 1789069191.759965,
+    "ast_hash": "6681a7af26b812df64b04022ba9048ab",
+    "semantic_hash": "6681a7af26b812df64b04022ba9048ab"
+  },
+  "src/states/__init__.py": {
+    "mtime": 1789060332.4829655,
+    "seen": 1789069191.759966,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "src/ui/__init__.py": {
+    "mtime": 1789060335.0698335,
+    "seen": 1789069191.759966,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "CLAUDE.md": {
+    "mtime": 1789059759.3296397,
+    "seen": 1789069191.759967,
+    "ast_hash": "05d4205f7b92a897b19760f841da1aa2",
+    "semantic_hash": "05d4205f7b92a897b19760f841da1aa2"
+  },
+  "requirements.txt": {
+    "mtime": 1789060319.8338645,
+    "seen": 1789069191.759967,
+    "ast_hash": "380f3ce896f8e3a955d94c20c563ddc7",
+    "semantic_hash": "380f3ce896f8e3a955d94c20c563ddc7"
+  },
+  "assets/graphics/Marze.png": {
+    "mtime": 1788571562.0215807,
+    "seen": 1789069191.759968,
+    "ast_hash": "42967e840e1996a57ada1ca24181d9b8",
+    "semantic_hash": "42967e840e1996a57ada1ca24181d9b8"
+  }
+}

@@ -32,6 +32,20 @@ WINDOW_HEIGHT = 720
 
 BASE_DIR = pathlib.Path(__file__).parent
 
+# Used by src.entities.Entity for gravity and by Level-driven entities in
+# general - tune to taste once combat/platforming feel is being dialed in.
+GRAVITY = 980
+
+# Rate at which gale.camera.Camera.follow() eases toward its target - see
+# src/Camera.py and how PlayState wires up the camera to follow the player.
+CAMERA_FOLLOW_RATE = 8.0
+
+# Register your tilemaps from the maps folder, for instance:
+# TILEMAPS = {
+#     'zone_1': str(BASE_DIR / "assets" / "maps" / "zone_1.json")
+# }
+TILEMAPS = {}
+
 # Register your textures from the graphics folder, for instance:
 # TEXTURES = {
 #     'my_texture': pygame.image.load(BASE_DIR / "assets" / "graphics" / "my_texture.png")
