@@ -75,6 +75,8 @@ TILEMAPS = {
 #     'my_texture': pygame.image.load(BASE_DIR / "assets" / "graphics" / "my_texture.png")
 # }
 TEXTURES = {
+    # 128x32 - 4 idle frames, 32x32 each - matching src.entities.Player's
+    # 32x32 collision box, so the character reads as 32x32 on screen.
     'marze': pygame.image.load(BASE_DIR / "assets" / "graphics" / "Marze.png"),
     'small_demon': pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "small-demon.png"
@@ -86,8 +88,7 @@ TEXTURES = {
 #     'my_frames': frames.generate_frames(TEXTURES['my_texture'], 16, 16)
 # }
 FRAMES = {
-    # Marze.png is a single 16x16 sprite by now - one frame, no animation yet.
-    'marze': frames.generate_frames(TEXTURES['marze'], 16, 16),
+    'marze': frames.generate_frames(TEXTURES['marze'], 32, 32),
     # 800x600, 8 cols x 6 rows of 100x100 cells. Row-major frame indices:
     # idle 0-5, run 8-15, (unused) 16-22, attack 24-30, hurt 32-35, dead 40-43.
     'small_demon': frames.generate_frames(TEXTURES['small_demon'], 100, 100),

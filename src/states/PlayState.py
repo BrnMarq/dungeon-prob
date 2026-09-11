@@ -21,7 +21,7 @@ class PlayState(BaseState):
         # resting exactly on it, not a few pixels in, so move_and_collide's
         # one-way platform check (which needs the entity already at/above
         # the surface) picks it up on the very first frame.
-        spawn_y = 16 * self.level.tilemap.tile_height - 16
+        spawn_y = 16 * self.level.tilemap.tile_height - Player.HEIGHT
         self.player = Player(16, spawn_y, self.level)
         self.level.entities.append(self.player)
 

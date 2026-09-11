@@ -55,9 +55,16 @@ until the first tagged version.
   padded 100x100 cell (vs. `Marze.png`'s flush 16x16, `sprite_offset=(0, 0)`).
 - `settings.py`: `DEMON_SPEED`, `DEMON_ATTACK_RANGE`, `DEMON_ATTACK_COOLDOWN`,
   and the `small_demon` texture/frames.
+- Marze got a real idle animation: `assets/graphics/Marze.png` is now
+  128x32 (4 frames, 32x32 each) instead of a single flush 16x16 sprite.
+  Player's `idle` animation plays all 4 frames (`interval: 0.2`).
 
 ### Changed
 
+- Player is now rendered/collided at 32x32 (`Player.WIDTH`/`HEIGHT`),
+  matching `Marze.png`'s native frame size, rather than downscaling the
+  texture 2x to read as 16x16 - reverts that downscale from the previous
+  pass now that the bigger size is the intended look.
 - `TitleState`, `PauseState`, `GameOverState`, `VictoryState` now forward
   straight to `PlayState` on `enter()` (marked `TODO`), so the game is
   reachable for testing before those screens exist.

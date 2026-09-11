@@ -16,19 +16,22 @@ from src.entities.player_states import PlayingState
 
 
 class Player(Entity):
+    WIDTH = 32
+    HEIGHT = 32
+
     def __init__(self, x: float, y: float, level: TypeVar("Level")) -> None:
         super().__init__(
             x,
             y,
-            16,
-            16,
+            self.WIDTH,
+            self.HEIGHT,
             "marze",
             level,
             states={
                 "playing": lambda sm: PlayingState(self, sm),
             },
             animation_defs={
-                "idle": {"frames": [0]},
+                "idle": {"frames": [0, 1, 2, 3], "interval": 0.2},
             },
         )
         self.change_state("playing")
