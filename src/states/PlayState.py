@@ -52,7 +52,7 @@ class PlayState(BaseState):
 
         spawn_x = spawn_col * tile_width
         spawn_y = row * self.level.tilemap.tile_height - SmallDemon.HEIGHT
-        demon = SmallDemon(spawn_x, spawn_y, self.level)
+        demon = SmallDemon(spawn_x, spawn_y, self.level, target=self.player)
         self.level.entities.append(demon)
 
     def exit(self) -> None:

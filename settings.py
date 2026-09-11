@@ -55,6 +55,13 @@ PLAYER_SPEED = 80
 JUMP_TAKEOFF_SPEED = GRAVITY / 3
 JUMP_CUT_VELOCITY = GRAVITY / 8
 
+# Used by src.entities.enemy_states.FollowState/AttackState.
+DEMON_SPEED = 40
+DEMON_ATTACK_RANGE = 24
+# How long the demon stands idle after its attack animation finishes before
+# resuming the chase - on top of the attack animation's own runtime.
+DEMON_ATTACK_COOLDOWN = 0.6
+
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
 #     'zone_1': str(BASE_DIR / "assets" / "maps" / "zone_1.json")

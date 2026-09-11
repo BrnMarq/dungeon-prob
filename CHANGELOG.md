@@ -38,6 +38,23 @@ until the first tagged version.
   `marze` texture/frames, and `move_left`/`move_right`/`jump` key bindings.
 - `PlayState` now loads the forest `Level`, spawns the `Player`, and renders
   both through a `gale.camera.Camera`.
+- First enemy: `src/entities/SmallDemon.py`, using the new
+  `assets/graphics/small-demon.png` sheet (800x600, 8x6 grid of 100x100
+  cells - idle/run/attack/hurt/dead animations all sliced and registered).
+  AI lives in `src/entities/enemy_states/`:
+  - `FollowState` - chases `self.target` (the player) horizontally.
+  - `AttackState` - triggered once in range; plays the attack animation
+    once, pauses idle for `settings.DEMON_ATTACK_COOLDOWN`, then hands back
+    to `FollowState`.
+  - `IdleState` - fallback for a demon with no target.
+  `PlayState` spawns one demon on a random ground tile within camera view of
+  the player (3+ tiles away) and passes the player in as its `target`.
+- `src/entities/mixins/DrawableMixin.py`: entities can now set
+  `sprite_offset` so a frame's art aligns with a hitbox smaller than its raw
+  cell - needed because `small-demon.png`'s creature is ~20x22px inside a
+  padded 100x100 cell (vs. `Marze.png`'s flush 16x16, `sprite_offset=(0, 0)`).
+- `settings.py`: `DEMON_SPEED`, `DEMON_ATTACK_RANGE`, `DEMON_ATTACK_COOLDOWN`,
+  and the `small_demon` texture/frames.
 
 ### Changed
 

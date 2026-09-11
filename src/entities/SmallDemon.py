@@ -1,13 +1,14 @@
-from typing import TypeVar
+from typing import Any, Optional, TypeVar
 
 from src.entities.Entity import Entity
-from src.entities.enemy_states import IdleState
+from src.entities.enemy_states import AttackState, FollowState, IdleState
 
 
 class SmallDemon(Entity):
-    """Ground enemy using assets/graphics/small-demon.png. Idle-only for now
-    - see IdleState. run/attack/hurt/dead animations are registered so a
-    later pass can wire up real AI/combat without re-deriving frame ranges.
+    """Ground enemy using assets/graphics/small-demon.png. Chases target
+    horizontally (FollowState) and attacks once it's close enough
+    (AttackState), pausing after the attack before resuming the chase.
+    Falls back to IdleState if it has no target.
     """
 
     # Matches the creature's actual silhouette within its padded 100x100
@@ -16,7 +17,13 @@ class SmallDemon(Entity):
     WIDTH = 20
     HEIGHT = 22
 
-    def __init__(self, x: float, y: float, level: TypeVar("Level")) -> None:
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        level: TypeVar("Level"),
+        target: Optional[Any] = None,
+    ) -> None:
         super().__init__(
             x,
             y,
@@ -26,6 +33,8 @@ class SmallDemon(Entity):
             level,
             states={
                 "idle": lambda sm: IdleState(self, sm),
+                "follow": lambda sm: FollowState(self, sm),
+                "attack": lambda sm: AttackState(self, sm),
             },
             animation_defs={
                 "idle": {"frames": list(range(0, 6)), "interval": 0.15},
@@ -36,4 +45,5 @@ class SmallDemon(Entity):
             },
         )
         self.sprite_offset = (42, 37)
-        self.change_state("idle")
+        self.target = target
+        self.change_state("follow" if target is not None else "idle")
