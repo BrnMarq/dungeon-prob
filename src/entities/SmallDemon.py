@@ -1,5 +1,8 @@
 from typing import Any, Optional, TypeVar
 
+import pygame
+
+import settings
 from src.entities.Entity import Entity
 from src.entities.enemy_states import AttackState, FollowState, IdleState
 
@@ -47,3 +50,34 @@ class SmallDemon(Entity):
         self.sprite_offset = (42, 37)
         self.target = target
         self.change_state("follow" if target is not None else "idle")
+
+    def melee_range_rect(self) -> pygame.Rect:
+        """The world-space rect FollowState checks to trigger an attack and
+        AttackState re-checks before actually landing the hit - single
+        source of truth so "when to attack" and "does it land" never
+        disagree with each other or with the debug overlay.
+
+        Extends settings.DEMON_ATTACK_RANGE past the entity's own hurtbox
+        only on the side it's currently facing (self.flipped - set by
+        FollowState from move_direction) - a demon facing right doesn't
+        also threaten whatever is behind it.
+        """
+        if self.flipped:
+            x = self.x - settings.DEMON_ATTACK_RANGE
+        else:
+            x = self.x
+        return pygame.Rect(
+            x,
+            self.y,
+            settings.DEMON_ATTACK_RANGE + self.width,
+            self.height,
+        )
+
+    def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
+        """Debug-overlay hook (src/debug.py, src/map/Level.py) - only
+        exposed while actually mid-swing, not for the whole time FollowState
+        is chase-range-checking.
+        """
+        if not isinstance(self.state_machine.current, AttackState):
+            return None
+        return self.melee_range_rect()

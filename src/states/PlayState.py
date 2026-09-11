@@ -11,6 +11,7 @@ from src.entities.Player import Player
 from src.entities.SmallDemon import SmallDemon
 from src.map.Level import Level
 from src.states.BaseState import BaseState
+from src.ui.HUD import HUD
 
 
 class PlayState(BaseState):
@@ -32,6 +33,8 @@ class PlayState(BaseState):
         self.camera.update(0)
 
         self._spawn_demon_near_player()
+
+        self.hud = HUD(self.player)
 
     def _spawn_demon_near_player(self) -> None:
         tile_width = self.level.tilemap.tile_width
@@ -67,3 +70,4 @@ class PlayState(BaseState):
 
     def render(self, surface: pygame.Surface) -> None:
         self.level.render(surface, self.camera)
+        self.hud.render(surface)

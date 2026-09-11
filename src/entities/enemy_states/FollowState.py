@@ -15,12 +15,11 @@ class FollowState(BaseEntityState):
             self.entity.vx = 0
             return
 
-        dx = target.x - self.entity.x
-
-        if abs(dx) <= settings.DEMON_ATTACK_RANGE:
+        if self.entity.melee_range_rect().colliderect(target.get_collision_rect()):
             self.entity.change_state("attack")
             return
 
+        dx = target.x - self.entity.x
         self.entity.move_direction = 1 if dx > 0 else -1
         self.entity.flipped = self.entity.move_direction < 0
         self.entity.vx = settings.DEMON_SPEED * self.entity.move_direction

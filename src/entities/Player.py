@@ -3,6 +3,7 @@ from typing import TypeVar
 from gale.command import CommandBindings
 from gale.input_handler import InputData
 
+import settings
 from src.commands import (
     JUMP,
     MOVE_LEFT,
@@ -35,6 +36,12 @@ class Player(Entity):
             },
         )
         self.change_state("playing")
+
+        self.level_num = 1
+        self.max_hp = settings.PLAYER_MAX_HP
+        self.hp = self.max_hp
+        self.xp = 0
+        self.xp_to_next_level = settings.PLAYER_XP_TO_NEXT_LEVEL
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind(

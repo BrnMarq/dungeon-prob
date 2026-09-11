@@ -28,8 +28,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, 'jump')
 TITLE = 'Dungeon Prob'
 
 # Size we want to emulate
-VIRTUAL_WIDTH = 320
-VIRTUAL_HEIGHT = 180
+VIRTUAL_WIDTH = 640
+VIRTUAL_HEIGHT = 360
 
 # Size of our actual window
 WINDOW_WIDTH = 1280
@@ -61,6 +61,22 @@ DEMON_ATTACK_RANGE = 24
 # How long the demon stands idle after its attack animation finishes before
 # resuming the chase - on top of the attack animation's own runtime.
 DEMON_ATTACK_COOLDOWN = 0.6
+DEMON_ATTACK_DAMAGE = 10
+
+# src.entities.DamageNumber - floating combat-text color for damage taken.
+DAMAGE_NUMBER_COLOR = pygame.Color(190, 80, 230)
+
+# Debug overlay (src/debug.py, drawn from src.map.Level.render) - translucent
+# hurtbox/hitbox rectangles for tuning collision/attack-range sizes visually.
+# Turn off once hitboxes are dialed in.
+DEBUG_HITBOXES = True
+DEBUG_HURTBOX_COLOR = (160, 60, 220, 90)  # translucent purple - entity hurtboxes
+DEBUG_HITBOX_COLOR = (220, 40, 40, 90)  # translucent red - attack hit areas
+
+# Used by src.entities.Player / src.ui.HUD. No leveling curve yet - flat
+# XP-to-next-level constant until that's designed.
+PLAYER_MAX_HP = 100
+PLAYER_XP_TO_NEXT_LEVEL = 100
 
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
@@ -80,6 +96,11 @@ TEXTURES = {
     'marze': pygame.image.load(BASE_DIR / "assets" / "graphics" / "Marze.png"),
     'small_demon': pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "small-demon.png"
+    ),
+    # Native 32x32, no ability variety yet - src.ui.HUD repeats it across
+    # every slot until there are enough distinct abilities to tell apart.
+    'marze_abilities': pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "marze-abilities.png"
     ),
 }
 

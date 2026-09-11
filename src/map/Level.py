@@ -4,6 +4,9 @@ import pygame
 
 from gale.tilemap import CollisionType, collision_type_at, load_tiled_map
 
+import settings
+from src import debug
+
 
 class Level:
     """Loads a Tiled JSON map and owns the entities living on it. Subclasses
@@ -40,3 +43,19 @@ class Level:
         self.tilemap.render(surface, camera)
         for entity in self.entities:
             entity.render(surface, camera)
+
+        if settings.DEBUG_HITBOXES:
+            self._render_debug_hitboxes(surface, camera)
+
+    def _render_debug_hitboxes(self, surface: pygame.Surface, camera: Any) -> None:
+        for entity in self.entities:
+            if hasattr(entity, "get_collision_rect"):
+                debug.draw_translucent_rect(
+                    surface, camera, entity.get_collision_rect(), settings.DEBUG_HURTBOX_COLOR
+                )
+            if hasattr(entity, "get_attack_hitbox_rect"):
+                hitbox = entity.get_attack_hitbox_rect()
+                if hitbox is not None:
+                    debug.draw_translucent_rect(
+                        surface, camera, hitbox, settings.DEBUG_HITBOX_COLOR
+                    )
