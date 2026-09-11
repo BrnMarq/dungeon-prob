@@ -1,8 +1,8 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 import pygame
 
-from gale.tilemap import load_tiled_map
+from gale.tilemap import CollisionType, collision_type_at, load_tiled_map
 
 
 class Level:
@@ -18,6 +18,17 @@ class Level:
 
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(0, 0, self.tilemap.pixel_width, self.tilemap.pixel_height)
+
+    def ground_row(self, col: int, layer_name: str = "ground") -> Optional[int]:
+        """
+        :returns: The first row in col whose layer_name tile is solid or a
+        platform (see gale.tilemap.CollisionType), or None if col has no
+        collidable tile at all - for spawning something standing on ground.
+        """
+        for row in range(self.tilemap.rows):
+            if collision_type_at(self.tilemap, layer_name, row, col) != CollisionType.NONE:
+                return row
+        return None
 
     def update(self, dt: float) -> None:
         for entity in self.entities:

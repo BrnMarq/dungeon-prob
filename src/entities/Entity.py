@@ -52,6 +52,7 @@ class Entity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMixin)
         self.generate_animations(animation_defs)
         self.flipped = False
         self.is_dead = False
+        self.sprite_offset: Tuple[float, float] = (0, 0)
 
     def change_state(
         self, state_id: str, *args: Tuple[Any], **kwargs: Dict[str, Any]

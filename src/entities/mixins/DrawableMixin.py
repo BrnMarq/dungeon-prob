@@ -16,5 +16,8 @@ class DrawableMixin:
         if self.flipped:
             image = pygame.transform.flip(image, True, False)
 
-        dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
+        offset_x, offset_y = self.sprite_offset
+        dest = camera.apply(
+            pygame.Rect(self.x - offset_x, self.y - offset_y, self.width, self.height)
+        )
         surface.blit(image, dest)
