@@ -9,7 +9,9 @@ from src.states.BaseState import BaseState
 
 class TitleState(BaseState):
     def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
-        pass
+        # TODO: remove once TitleState has its own screen - forwards
+        # straight to PlayState so it can be exercised on its own.
+        self.state_machine.change('play')
 
     def exit(self) -> None:
         pass

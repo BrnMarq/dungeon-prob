@@ -32,3 +32,5 @@ class DungeonProb(Game, InputListener):
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if (input_id == 'quit' and input_data.pressed):
             self.quit()
+        else:
+            self.state_machine.on_input(input_id, input_data)

@@ -19,6 +19,11 @@ from gale import input_handler
 # no audio device is available, unlike calling pygame.mixer.init() directly.
 
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, 'quit')
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RIGHT, 'move_right')
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_d, 'move_right')
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, 'move_left')
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_a, 'move_left')
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, 'jump')
 
 TITLE = 'Dungeon Prob'
 
@@ -40,23 +45,40 @@ GRAVITY = 980
 # src/Camera.py and how PlayState wires up the camera to follow the player.
 CAMERA_FOLLOW_RATE = 8.0
 
+PLAYER_SPEED = 80
+
+# Variable-height jump: the takeoff speed is always the same (full arc if
+# held), but releasing "jump" early while still ascending clamps vy up to
+# JUMP_CUT_VELOCITY (a smaller upward speed), so the arc peaks sooner and
+# lower. The longer the button stays held, the closer the jump gets to
+# its full height.
+JUMP_TAKEOFF_SPEED = GRAVITY / 3
+JUMP_CUT_VELOCITY = GRAVITY / 8
+
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
 #     'zone_1': str(BASE_DIR / "assets" / "maps" / "zone_1.json")
 # }
-TILEMAPS = {}
+TILEMAPS = {
+    'forest': str(BASE_DIR / "assets" / "maps" / "forest.json"),
+}
 
 # Register your textures from the graphics folder, for instance:
 # TEXTURES = {
 #     'my_texture': pygame.image.load(BASE_DIR / "assets" / "graphics" / "my_texture.png")
 # }
-TEXTURES = {}
+TEXTURES = {
+    'marze': pygame.image.load(BASE_DIR / "assets" / "graphics" / "Marze.png"),
+}
 
 # Register your frames, for instance:
 # FRAMES = {
 #     'my_frames': frames.generate_frames(TEXTURES['my_texture'], 16, 16)
 # }
-FRAMES = {}
+FRAMES = {
+    # Marze.png is a single 16x16 sprite by now - one frame, no animation yet.
+    'marze': frames.generate_frames(TEXTURES['marze'], 16, 16),
+}
 
 # Register your sound from the sounds folder, for instance:
 # SOUNDS = {
