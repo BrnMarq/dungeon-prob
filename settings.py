@@ -94,6 +94,15 @@ DEMON_ATTACK_COOLDOWN = 0.6
 DEMON_ATTACK_DAMAGE = 10
 DEMON_MAX_HP = 40
 
+# Periodic random spawning - src.states.PlayState._spawn_demon. Every
+# DEMON_SPAWN_INTERVAL seconds, one demon spawns on solid ground somewhere
+# between MIN and MAX tile columns away from the player (randomly to
+# either side), as long as fewer than DEMON_MAX_ACTIVE are already alive.
+DEMON_SPAWN_INTERVAL = 4.0
+DEMON_SPAWN_MIN_DISTANCE_TILES = 4
+DEMON_SPAWN_MAX_DISTANCE_TILES = 10
+DEMON_MAX_ACTIVE = 5
+
 # Overhead enemy health bar (src/ui/health_bar.py, drawn from
 # src.map.Level.render for any entity with SHOW_HEALTH_BAR = True) - only
 # rendered while hp < max_hp, red fill per the design ask.
@@ -151,8 +160,9 @@ TEXTURES = {
 # }
 FRAMES = {
     "marze": frames.generate_frames(TEXTURES["marze"], 32, 32),
-    # 800x600, 8 cols x 6 rows of 100x100 cells. Row-major frame indices:
-    # idle 0-5, run 8-15, (unused) 16-22, attack 24-30, hurt 32-35, dead 40-43.
+    # 800x700, 8 cols x 7 rows of 100x100 cells. Row-major frame indices:
+    # idle 0-5, run 8-15, (unused) 16-22, attack 24-30, hurt 32-35,
+    # dead 40-43, spawn 48-51.
     "small_demon": frames.generate_frames(TEXTURES["small_demon"], 100, 100),
     "marze_abilities": frames.generate_frames(TEXTURES["marze_abilities"], 32, 32),
 }

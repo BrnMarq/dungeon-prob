@@ -5,15 +5,23 @@ import pygame
 import settings
 from src.entities.DamageNumber import DamageNumber
 from src.entities.Entity import Entity
-from src.entities.enemy_states import AttackState, DeadState, FollowState, HurtState, IdleState
+from src.entities.enemy_states import (
+    AttackState,
+    DeadState,
+    FollowState,
+    HurtState,
+    IdleState,
+    SpawnState,
+)
 
 
 class SmallDemon(Entity):
-    """Ground enemy using assets/graphics/small-demon.png. Chases target
-    horizontally (FollowState) and attacks once it's close enough
-    (AttackState), pausing after the attack before resuming the chase.
-    Falls back to IdleState if it has no target. take_damage() interrupts
-    whatever it's doing to play HurtState, or DeadState once hp runs out.
+    """Ground enemy using assets/graphics/small-demon.png. Emerges via
+    SpawnState, then chases target horizontally (FollowState) and attacks
+    once it's close enough (AttackState), pausing after the attack before
+    resuming the chase. Falls back to IdleState if it has no target.
+    take_damage() interrupts whatever it's doing to play HurtState, or
+    DeadState once hp runs out.
     """
 
     # Matches the creature's actual silhouette within its padded 100x100
@@ -41,6 +49,7 @@ class SmallDemon(Entity):
             "small_demon",
             level,
             states={
+                "spawn": lambda sm: SpawnState(self, sm),
                 "idle": lambda sm: IdleState(self, sm),
                 "follow": lambda sm: FollowState(self, sm),
                 "attack": lambda sm: AttackState(self, sm),
@@ -53,13 +62,14 @@ class SmallDemon(Entity):
                 "attack": {"frames": list(range(24, 31)), "interval": 0.08, "loops": 1},
                 "hurt": {"frames": list(range(32, 36)), "interval": 0.1, "loops": 1},
                 "dead": {"frames": list(range(40, 44)), "interval": 0.15, "loops": 1},
+                "spawn": {"frames": list(range(48, 52)), "interval": 0.1, "loops": 1},
             },
         )
         self.sprite_offset = (42, 37)
         self.max_hp = settings.DEMON_MAX_HP
         self.hp = self.max_hp
         self.target = target
-        self.change_state("follow" if target is not None else "idle")
+        self.change_state("spawn")
 
     def take_damage(self, amount: int) -> None:
         """Reacts to incoming damage - see src.entities.player_states.

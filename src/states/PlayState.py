@@ -32,23 +32,30 @@ class PlayState(BaseState):
         self.camera.x, self.camera.y = self.player.x, self.player.y
         self.camera.update(0)
 
-        self._spawn_demon_near_player()
+        # 0 rather than DEMON_SPAWN_INTERVAL so the first demon spawns on
+        # the very first update() tick instead of after a cold wait.
+        self.spawn_timer = 0.0
 
         self.hud = HUD(self.player)
 
-    def _spawn_demon_near_player(self) -> None:
-        tile_width = self.level.tilemap.tile_width
-        half_view_cols = int((settings.VIRTUAL_WIDTH / 2) // tile_width)
-        player_col = int(self.player.x // tile_width)
-        min_col = max(0, player_col - half_view_cols)
-        max_col = min(self.level.tilemap.cols - 1, player_col + half_view_cols)
-        # Stay clear of the player's own column so it doesn't spawn on top
-        # of them, but still within the camera's current view.
-        candidate_cols = [
-            col for col in range(min_col, max_col + 1) if abs(col - player_col) >= 3
-        ]
+    def _spawn_demon(self) -> None:
+        active_demons = sum(
+            1 for entity in self.level.entities if isinstance(entity, SmallDemon)
+        )
+        if active_demons >= settings.DEMON_MAX_ACTIVE:
+            return
 
-        spawn_col = random.choice(candidate_cols) if candidate_cols else player_col
+        tile_width = self.level.tilemap.tile_width
+        player_col = int(self.player.x // tile_width)
+        distance = random.randint(
+            settings.DEMON_SPAWN_MIN_DISTANCE_TILES,
+            settings.DEMON_SPAWN_MAX_DISTANCE_TILES,
+        )
+        direction = random.choice((-1, 1))
+        spawn_col = max(
+            0, min(self.level.tilemap.cols - 1, player_col + direction * distance)
+        )
+
         row = self.level.ground_row(spawn_col)
         if row is None:
             return
@@ -67,6 +74,11 @@ class PlayState(BaseState):
     def update(self, dt: float) -> None:
         self.camera.update(dt)
         self.level.update(dt)
+
+        self.spawn_timer -= dt
+        if self.spawn_timer <= 0:
+            self.spawn_timer = settings.DEMON_SPAWN_INTERVAL
+            self._spawn_demon()
 
     def render(self, surface: pygame.Surface) -> None:
         self.level.render(surface, self.camera)
