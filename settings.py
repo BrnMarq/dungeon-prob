@@ -5,6 +5,7 @@ gale's own default automatically; see gale.conf for the full list.
 You can also add settings of your own here (for instance PLAYER_SPEED)
 and read them back the same way, with `from gale.conf import settings`.
 """
+
 import pathlib
 
 import pygame
@@ -18,14 +19,18 @@ from gale import input_handler
 # with, mixer and font included -- and does so without raising if, say,
 # no audio device is available, unlike calling pygame.mixer.init() directly.
 
-input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, 'quit')
-input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RIGHT, 'move_right')
-input_handler.InputHandler.set_keyboard_action(input_handler.KEY_d, 'move_right')
-input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, 'move_left')
-input_handler.InputHandler.set_keyboard_action(input_handler.KEY_a, 'move_left')
-input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, 'jump')
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RIGHT, "move_right")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_d, "move_right")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, "move_left")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_a, "move_left")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "jump")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LSHIFT, "dash")
+input_handler.InputHandler.set_keyboard_action(
+    input_handler.KEY_h, "toggle_debug_hitboxes"
+)
 
-TITLE = 'Dungeon Prob'
+TITLE = "Dungeon Prob"
 
 # Size we want to emulate
 VIRTUAL_WIDTH = 640
@@ -55,6 +60,13 @@ PLAYER_SPEED = 80
 JUMP_TAKEOFF_SPEED = GRAVITY / 3
 JUMP_CUT_VELOCITY = GRAVITY / 8
 
+# Dash: a short, gravity-cancelling horizontal burst - see
+# src.entities.player_states.DashState. Duration matches the 7-frame dash
+# animation (Marze.png row 2) so the streak frames play out over the burst.
+PLAYER_DASH_SPEED = 320
+PLAYER_DASH_DURATION = 0.25
+PLAYER_DASH_COOLDOWN = 0.6
+
 # Used by src.entities.enemy_states.FollowState/AttackState.
 DEMON_SPEED = 40
 DEMON_ATTACK_RANGE = 24
@@ -68,8 +80,8 @@ DAMAGE_NUMBER_COLOR = pygame.Color(190, 80, 230)
 
 # Debug overlay (src/debug.py, drawn from src.map.Level.render) - translucent
 # hurtbox/hitbox rectangles for tuning collision/attack-range sizes visually.
-# Turn off once hitboxes are dialed in.
-DEBUG_HITBOXES = True
+# Just the default at startup - press 'h' in-game to toggle (src.Game.on_input).
+DEBUG_HITBOXES = False
 DEBUG_HURTBOX_COLOR = (160, 60, 220, 90)  # translucent purple - entity hurtboxes
 DEBUG_HITBOX_COLOR = (220, 40, 40, 90)  # translucent red - attack hit areas
 
@@ -83,7 +95,7 @@ PLAYER_XP_TO_NEXT_LEVEL = 100
 #     'zone_1': str(BASE_DIR / "assets" / "maps" / "zone_1.json")
 # }
 TILEMAPS = {
-    'forest': str(BASE_DIR / "assets" / "maps" / "forest.json"),
+    "forest": str(BASE_DIR / "assets" / "maps" / "forest.json"),
 }
 
 # Register your textures from the graphics folder, for instance:
@@ -91,15 +103,15 @@ TILEMAPS = {
 #     'my_texture': pygame.image.load(BASE_DIR / "assets" / "graphics" / "my_texture.png")
 # }
 TEXTURES = {
-    # 128x32 - 4 idle frames, 32x32 each - matching src.entities.Player's
-    # 32x32 collision box, so the character reads as 32x32 on screen.
-    'marze': pygame.image.load(BASE_DIR / "assets" / "graphics" / "Marze.png"),
-    'small_demon': pygame.image.load(
+    # 160x96 - 5x3 grid of 32x32 cells, matching src.entities.Player's
+    # 32x32 collision box. Row-major frame indices: idle 0-3 (rest of row
+    # 0 unused), run 5-7 (rest of row 1 unused), dash 10-14.
+    "marze": pygame.image.load(BASE_DIR / "assets" / "graphics" / "Marze.png"),
+    "small_demon": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "small-demon.png"
     ),
-    # Native 32x32, no ability variety yet - src.ui.HUD repeats it across
-    # every slot until there are enough distinct abilities to tell apart.
-    'marze_abilities': pygame.image.load(
+    # 128x32 - 4 distinct 32x32 ability icons, in HUD slot order.
+    "marze_abilities": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "marze-abilities.png"
     ),
 }
@@ -109,10 +121,11 @@ TEXTURES = {
 #     'my_frames': frames.generate_frames(TEXTURES['my_texture'], 16, 16)
 # }
 FRAMES = {
-    'marze': frames.generate_frames(TEXTURES['marze'], 32, 32),
+    "marze": frames.generate_frames(TEXTURES["marze"], 32, 32),
     # 800x600, 8 cols x 6 rows of 100x100 cells. Row-major frame indices:
     # idle 0-5, run 8-15, (unused) 16-22, attack 24-30, hurt 32-35, dead 40-43.
-    'small_demon': frames.generate_frames(TEXTURES['small_demon'], 100, 100),
+    "small_demon": frames.generate_frames(TEXTURES["small_demon"], 100, 100),
+    "marze_abilities": frames.generate_frames(TEXTURES["marze_abilities"], 32, 32),
 }
 
 # Register your sound from the sounds folder, for instance:

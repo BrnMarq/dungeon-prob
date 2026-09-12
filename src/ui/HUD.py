@@ -59,13 +59,17 @@ class HUD:
             self.bars_x, xp_bar_y, bars_width, XP_BAR_HEIGHT, color=XP_COLOR
         )
 
-        # marze-abilities.png is native 32x32 - scaled once here to fill
-        # ICON_SIZE slots rather than per-frame in render(). Surface.blit
+        # marze-abilities.png frames are native 32x32 - scaled once here to
+        # fill ICON_SIZE slots rather than per-frame in render(). Surface.blit
         # never scales on its own, it always draws at the source's native
         # size positioned at the dest rect's topleft.
-        self.icon = pygame.transform.scale(
-            settings.TEXTURES['marze_abilities'], (ICON_SIZE, ICON_SIZE)
-        )
+        abilities_texture = settings.TEXTURES['marze_abilities']
+        self.icons = [
+            pygame.transform.scale(
+                abilities_texture.subsurface(frame_rect), (ICON_SIZE, ICON_SIZE)
+            )
+            for frame_rect in settings.FRAMES['marze_abilities']
+        ]
 
     def render(self, surface: pygame.Surface) -> None:
         theme = get_default_theme()
@@ -106,5 +110,5 @@ class HUD:
         for i in range(NUM_ABILITY_SLOTS):
             x = self.bars_x + i * (ICON_SIZE + ICON_GAP)
             slot_rect = pygame.Rect(x, self.icons_y, ICON_SIZE, ICON_SIZE)
-            surface.blit(self.icon, slot_rect)
+            surface.blit(self.icons[i], slot_rect)
             pygame.draw.rect(surface, theme.border_color, slot_rect, theme.border_width)
