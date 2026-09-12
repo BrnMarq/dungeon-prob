@@ -6,6 +6,7 @@ from gale.tilemap import CollisionType, collision_type_at, load_tiled_map
 
 import settings
 from src import debug
+from src.ui.health_bar import render_health_bar
 
 
 class Level:
@@ -43,6 +44,8 @@ class Level:
         self.tilemap.render(surface, camera)
         for entity in self.entities:
             entity.render(surface, camera)
+            if getattr(entity, "SHOW_HEALTH_BAR", False):
+                render_health_bar(surface, camera, entity)
 
         if settings.DEBUG_HITBOXES:
             self._render_debug_hitboxes(surface, camera)

@@ -1,5 +1,4 @@
 import settings
-from src.entities.DamageNumber import DamageNumber
 from src.entities.states.BaseEntityState import BaseEntityState
 
 
@@ -23,19 +22,14 @@ class AttackState(BaseEntityState):
     def _land_hit(self) -> None:
         hitbox = self.entity.attack_hitbox_rect()
         for other in self.entity.level.entities:
-            if other is self.entity or not hasattr(other, "hp"):
+            if other is self.entity or not hasattr(other, "take_damage"):
                 continue
             if not hasattr(other, "get_collision_rect"):
                 continue
             if not hitbox.colliderect(other.get_collision_rect()):
                 continue
 
-            other.hp = max(0, other.hp - settings.PLAYER_ATTACK_DAMAGE)
-            self.entity.level.entities.append(
-                DamageNumber(
-                    other.x + other.width / 2, other.y, settings.PLAYER_ATTACK_DAMAGE
-                )
-            )
+            other.take_damage(settings.PLAYER_ATTACK_DAMAGE)
 
     def update(self, dt: float) -> None:
         self.entity.vx = 0

@@ -89,6 +89,17 @@ DEMON_ATTACK_RANGE = 24
 # resuming the chase - on top of the attack animation's own runtime.
 DEMON_ATTACK_COOLDOWN = 0.6
 DEMON_ATTACK_DAMAGE = 10
+DEMON_MAX_HP = 40
+
+# Overhead enemy health bar (src/ui/health_bar.py, drawn from
+# src.map.Level.render for any entity with SHOW_HEALTH_BAR = True) - only
+# rendered while hp < max_hp, red fill per the design ask.
+ENEMY_HEALTH_BAR_WIDTH = 24
+ENEMY_HEALTH_BAR_HEIGHT = 3
+ENEMY_HEALTH_BAR_OFFSET_Y = 4
+ENEMY_HEALTH_BAR_BG_COLOR = (40, 40, 40, 220)
+ENEMY_HEALTH_BAR_FILL_COLOR = (200, 40, 40)
+ENEMY_HEALTH_BAR_BORDER_COLOR = (10, 10, 10)
 
 # src.entities.DamageNumber - floating combat-text color for damage taken.
 DAMAGE_NUMBER_COLOR = pygame.Color(190, 80, 230)

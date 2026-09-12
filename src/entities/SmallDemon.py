@@ -3,15 +3,17 @@ from typing import Any, Optional, TypeVar
 import pygame
 
 import settings
+from src.entities.DamageNumber import DamageNumber
 from src.entities.Entity import Entity
-from src.entities.enemy_states import AttackState, FollowState, IdleState
+from src.entities.enemy_states import AttackState, DeadState, FollowState, HurtState, IdleState
 
 
 class SmallDemon(Entity):
     """Ground enemy using assets/graphics/small-demon.png. Chases target
     horizontally (FollowState) and attacks once it's close enough
     (AttackState), pausing after the attack before resuming the chase.
-    Falls back to IdleState if it has no target.
+    Falls back to IdleState if it has no target. take_damage() interrupts
+    whatever it's doing to play HurtState, or DeadState once hp runs out.
     """
 
     # Matches the creature's actual silhouette within its padded 100x100
@@ -19,6 +21,10 @@ class SmallDemon(Entity):
     # keeps the hitbox sane relative to the 16px tile grid.
     WIDTH = 20
     HEIGHT = 22
+
+    # Tells src.map.Level.render to draw the overhead health bar
+    # (src/ui/health_bar.py) for this entity whenever it's below full hp.
+    SHOW_HEALTH_BAR = True
 
     def __init__(
         self,
@@ -38,6 +44,8 @@ class SmallDemon(Entity):
                 "idle": lambda sm: IdleState(self, sm),
                 "follow": lambda sm: FollowState(self, sm),
                 "attack": lambda sm: AttackState(self, sm),
+                "hurt": lambda sm: HurtState(self, sm),
+                "dead": lambda sm: DeadState(self, sm),
             },
             animation_defs={
                 "idle": {"frames": list(range(0, 6)), "interval": 0.15},
@@ -48,8 +56,25 @@ class SmallDemon(Entity):
             },
         )
         self.sprite_offset = (42, 37)
+        self.max_hp = settings.DEMON_MAX_HP
+        self.hp = self.max_hp
         self.target = target
         self.change_state("follow" if target is not None else "idle")
+
+    def take_damage(self, amount: int) -> None:
+        """Reacts to incoming damage - see src.entities.player_states.
+        AttackState._land_hit. Guarded by hp<=0 so a demon already dying
+        doesn't restart HurtState/spawn extra damage numbers if something
+        hits it again mid-death-animation.
+        """
+        if self.hp <= 0:
+            return
+
+        self.hp = max(0, self.hp - amount)
+        self.level.entities.append(
+            DamageNumber(self.x + self.width / 2, self.y, amount)
+        )
+        self.change_state("dead" if self.hp <= 0 else "hurt")
 
     def melee_range_rect(self) -> pygame.Rect:
         """The world-space rect FollowState checks to trigger an attack and
