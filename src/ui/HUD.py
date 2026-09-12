@@ -1,3 +1,4 @@
+import math
 from typing import TypeVar
 
 import pygame
@@ -19,6 +20,7 @@ LEVEL_BADGE_SIZE = 16
 
 HP_COLOR = pygame.Color(90, 200, 90)
 XP_COLOR = pygame.Color(90, 160, 230)
+COOLDOWN_OVERLAY_COLOR = (40, 40, 40, 170)  # translucent gray
 
 
 class HUD:
@@ -71,6 +73,11 @@ class HUD:
             for frame_rect in settings.FRAMES['marze_abilities']
         ]
 
+        # Built once and reused every frame a slot is on cooldown, rather
+        # than allocating a fresh translucent surface per slot per render.
+        self.cooldown_overlay = pygame.Surface((ICON_SIZE, ICON_SIZE), pygame.SRCALPHA)
+        self.cooldown_overlay.fill(COOLDOWN_OVERLAY_COLOR)
+
     def render(self, surface: pygame.Surface) -> None:
         theme = get_default_theme()
         player = self.player
@@ -111,4 +118,19 @@ class HUD:
             x = self.bars_x + i * (ICON_SIZE + ICON_GAP)
             slot_rect = pygame.Rect(x, self.icons_y, ICON_SIZE, ICON_SIZE)
             surface.blit(self.icons[i], slot_rect)
+
+            remaining, _total = player.get_ability_cooldown(i)
+            if remaining > 0:
+                surface.blit(self.cooldown_overlay, slot_rect)
+                render_text(
+                    surface,
+                    str(math.ceil(remaining)),
+                    self.font,
+                    slot_rect.centerx,
+                    slot_rect.centery,
+                    theme.text_color,
+                    center=True,
+                    shadowed=True,
+                )
+
             pygame.draw.rect(surface, theme.border_color, slot_rect, theme.border_width)

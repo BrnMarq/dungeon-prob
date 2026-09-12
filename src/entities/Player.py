@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar
+from typing import Optional, Tuple, TypeVar
 
 import pygame
 
@@ -96,3 +96,13 @@ class Player(Entity):
         if not isinstance(self.state_machine.current, AttackState):
             return None
         return self.attack_hitbox_rect()
+
+    def get_ability_cooldown(self, slot: int) -> Tuple[float, float]:
+        """(seconds remaining, total cooldown) for src.ui.HUD's ability bar,
+        indexed the same way as marze-abilities.png/Q-W-E-R: 0 attack, 1
+        unused, 2 dash, 3 unused. (0, 0) means "not on cooldown" - covers
+        both a ready ability and one with no cooldown at all (e.g. attack).
+        """
+        if slot == 2:
+            return self.dash_cooldown_timer, settings.PLAYER_DASH_COOLDOWN
+        return 0.0, 0.0

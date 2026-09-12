@@ -73,7 +73,7 @@ JUMP_CUT_VELOCITY = GRAVITY / 8
 # animation (Marze.png row 2) so the streak frames play out over the burst.
 PLAYER_DASH_SPEED = 320
 PLAYER_DASH_DURATION = 0.25
-PLAYER_DASH_COOLDOWN = 0.6
+PLAYER_DASH_COOLDOWN = 3
 
 # Front-facing melee attack (Q ability) - src.entities.player_states.AttackState.
 # No dedicated sprite yet, so it plays the idle animation for its duration
