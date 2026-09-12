@@ -53,6 +53,11 @@ class DashCommand(Command):
         receiver.dash_requested = True
 
 
+class AttackCommand(Command):
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.attack_requested = True
+
+
 MOVE_LEFT = MoveLeftCommand()
 MOVE_RIGHT = MoveRightCommand()
 STOP_MOVE_LEFT = StopMoveLeftCommand()
@@ -60,3 +65,4 @@ STOP_MOVE_RIGHT = StopMoveRightCommand()
 JUMP = JumpCommand()
 STOP_JUMP = StopJumpCommand()
 DASH = DashCommand()
+ATTACK = AttackCommand()

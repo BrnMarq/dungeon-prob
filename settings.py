@@ -25,10 +25,18 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_d, "move_right"
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_a, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "jump")
-input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LSHIFT, "dash")
 input_handler.InputHandler.set_keyboard_action(
     input_handler.KEY_h, "toggle_debug_hitboxes"
 )
+
+# Ability bar - Q/W/E/R map straight to HUD slots 1-4 (src.ui.HUD). Q and E
+# are wired to real abilities below; W/R are reserved action ids with
+# nothing bound to them on the receiving end yet (src.entities.Player) -
+# safe no-ops until those abilities exist.
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_q, "attack")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_w, "ability_2")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_e, "dash")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_r, "ability_4")
 
 TITLE = "Dungeon Prob"
 
@@ -66,6 +74,13 @@ JUMP_CUT_VELOCITY = GRAVITY / 8
 PLAYER_DASH_SPEED = 320
 PLAYER_DASH_DURATION = 0.25
 PLAYER_DASH_COOLDOWN = 0.6
+
+# Front-facing melee attack (Q ability) - src.entities.player_states.AttackState.
+# No dedicated sprite yet, so it plays the idle animation for its duration
+# instead - see AttackState for the hit-frame timing this implies.
+PLAYER_ATTACK_RANGE = 20
+PLAYER_ATTACK_DAMAGE = 15
+PLAYER_ATTACK_DURATION = 0.3
 
 # Used by src.entities.enemy_states.FollowState/AttackState.
 DEMON_SPEED = 40

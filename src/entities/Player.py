@@ -1,10 +1,13 @@
-from typing import TypeVar
+from typing import Optional, TypeVar
+
+import pygame
 
 from gale.command import CommandBindings
 from gale.input_handler import InputData
 
 import settings
 from src.commands import (
+    ATTACK,
     DASH,
     JUMP,
     MOVE_LEFT,
@@ -14,7 +17,7 @@ from src.commands import (
     STOP_MOVE_RIGHT,
 )
 from src.entities.Entity import Entity
-from src.entities.player_states import DashState, PlayingState
+from src.entities.player_states import AttackState, DashState, PlayingState
 
 
 class Player(Entity):
@@ -32,6 +35,7 @@ class Player(Entity):
             states={
                 "playing": lambda sm: PlayingState(self, sm),
                 "dash": lambda sm: DashState(self, sm),
+                "attack": lambda sm: AttackState(self, sm),
             },
             animation_defs={
                 "idle": {"frames": [0, 1, 2, 3], "interval": 0.2},
@@ -53,6 +57,7 @@ class Player(Entity):
 
         self.dash_requested = False
         self.dash_cooldown_timer = 0.0
+        self.attack_requested = False
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind("move_left", press=MOVE_LEFT, release=STOP_MOVE_LEFT)
@@ -61,6 +66,7 @@ class Player(Entity):
         )
         self.command_bindings.bind("jump", press=JUMP, release=STOP_JUMP)
         self.command_bindings.bind("dash", press=DASH)
+        self.command_bindings.bind("attack", press=ATTACK)
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         self.command_bindings.dispatch(self, input_id, input_data)
@@ -69,3 +75,24 @@ class Player(Entity):
         super().update(dt)
         if self.dash_cooldown_timer > 0:
             self.dash_cooldown_timer -= dt
+
+    def attack_hitbox_rect(self) -> pygame.Rect:
+        """The world-space rect AttackState lands its hit against - facing
+        the direction Marze is currently flipped toward, same convention
+        as src.entities.SmallDemon.melee_range_rect.
+        """
+        if self.flipped:
+            x = self.x - settings.PLAYER_ATTACK_RANGE
+        else:
+            x = self.x
+        return pygame.Rect(
+            x, self.y, settings.PLAYER_ATTACK_RANGE + self.width, self.height
+        )
+
+    def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
+        """Debug-overlay hook (src/debug.py, src/map/Level.py) - only
+        exposed while actually mid-swing.
+        """
+        if not isinstance(self.state_machine.current, AttackState):
+            return None
+        return self.attack_hitbox_rect()

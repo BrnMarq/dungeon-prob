@@ -15,6 +15,11 @@ class PlayingState(BaseEntityState):
         if self.entity.move_direction != 0:
             self.entity.flipped = self.entity.move_direction < 0
 
+        if self.entity.attack_requested:
+            self.entity.attack_requested = False
+            self.entity.change_state("attack")
+            return
+
         if self.entity.dash_requested:
             self.entity.dash_requested = False
             if self.entity.dash_cooldown_timer <= 0:
