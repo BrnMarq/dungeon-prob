@@ -74,6 +74,9 @@ JUMP_CUT_VELOCITY = GRAVITY / 8
 PLAYER_DASH_SPEED = 320
 PLAYER_DASH_DURATION = 0.25
 PLAYER_DASH_COOLDOWN = 3
+# Outlasts the dash itself - invincibility covers the recovery window right
+# after the burst too, not just the movement.
+PLAYER_INVINCIBILITY_DURATION = 1.0
 
 # Front-facing melee attack (Q ability) - src.entities.player_states.AttackState.
 # No dedicated sprite yet, so it plays the idle animation for its duration

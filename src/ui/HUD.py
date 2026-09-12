@@ -21,6 +21,8 @@ LEVEL_BADGE_SIZE = 16
 HP_COLOR = pygame.Color(90, 200, 90)
 XP_COLOR = pygame.Color(90, 160, 230)
 COOLDOWN_OVERLAY_COLOR = (40, 40, 40, 170)  # translucent gray
+INVINCIBLE_COLOR = pygame.Color(255, 255, 255)
+INVINCIBLE_TEXT_COLOR = pygame.Color(20, 20, 20)
 
 
 class HUD:
@@ -65,12 +67,12 @@ class HUD:
         # fill ICON_SIZE slots rather than per-frame in render(). Surface.blit
         # never scales on its own, it always draws at the source's native
         # size positioned at the dest rect's topleft.
-        abilities_texture = settings.TEXTURES['marze_abilities']
+        abilities_texture = settings.TEXTURES["marze_abilities"]
         self.icons = [
             pygame.transform.scale(
                 abilities_texture.subsurface(frame_rect), (ICON_SIZE, ICON_SIZE)
             )
-            for frame_rect in settings.FRAMES['marze_abilities']
+            for frame_rect in settings.FRAMES["marze_abilities"]
         ]
 
         # Built once and reused every frame a slot is on cooldown, rather
@@ -87,18 +89,35 @@ class HUD:
         self.xp_bar.value = player.xp
         self.xp_bar.max_value = player.xp_to_next_level
 
-        self.hp_bar.render(surface)
+        if getattr(player, "is_invincible", False):
+            pygame.draw.rect(surface, INVINCIBLE_COLOR, self.hp_bar.rect)
+            if theme.border_width > 0:
+                pygame.draw.rect(
+                    surface, theme.border_color, self.hp_bar.rect, theme.border_width
+                )
+            render_text(
+                surface,
+                "INVINCIBLE",
+                self.font,
+                self.hp_bar.rect.centerx,
+                self.hp_bar.rect.centery,
+                INVINCIBLE_TEXT_COLOR,
+                center=True,
+            )
+        else:
+            self.hp_bar.render(surface)
+            render_text(
+                surface,
+                f"{player.hp}/{player.max_hp}",
+                self.font,
+                self.hp_bar.rect.centerx,
+                self.hp_bar.rect.centery,
+                theme.text_color,
+                center=True,
+                shadowed=True,
+            )
+
         self.xp_bar.render(surface)
-        render_text(
-            surface,
-            f"{player.hp}/{player.max_hp}",
-            self.font,
-            self.hp_bar.rect.centerx,
-            self.hp_bar.rect.centery,
-            theme.text_color,
-            center=True,
-            shadowed=True,
-        )
 
         pygame.draw.rect(surface, theme.background_color, self.level_badge_rect)
         pygame.draw.rect(

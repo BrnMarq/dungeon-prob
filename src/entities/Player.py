@@ -16,6 +16,7 @@ from src.commands import (
     STOP_MOVE_LEFT,
     STOP_MOVE_RIGHT,
 )
+from src.entities.DamageNumber import DamageNumber
 from src.entities.Entity import Entity
 from src.entities.player_states import AttackState, DashState, PlayingState
 
@@ -58,6 +59,7 @@ class Player(Entity):
         self.dash_requested = False
         self.dash_cooldown_timer = 0.0
         self.attack_requested = False
+        self.invincible_timer = 0.0
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind("move_left", press=MOVE_LEFT, release=STOP_MOVE_LEFT)
@@ -75,6 +77,26 @@ class Player(Entity):
         super().update(dt)
         if self.dash_cooldown_timer > 0:
             self.dash_cooldown_timer -= dt
+        if self.invincible_timer > 0:
+            self.invincible_timer -= dt
+
+    @property
+    def is_invincible(self) -> bool:
+        return self.invincible_timer > 0
+
+    def take_damage(self, amount: int) -> None:
+        """Reacts to incoming damage (see src.entities.enemy_states.
+        AttackState._land_hit) - a no-op entirely while dashing's
+        invincibility window is active (self.invincible_timer, started by
+        src.entities.player_states.DashState).
+        """
+        if self.is_invincible:
+            return
+
+        self.hp = max(0, self.hp - amount)
+        self.level.entities.append(
+            DamageNumber(self.x + self.width / 2, self.y, amount)
+        )
 
     def attack_hitbox_rect(self) -> pygame.Rect:
         """The world-space rect AttackState lands its hit against - facing
