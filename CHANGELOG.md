@@ -3,10 +3,17 @@
 All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-This project has no releases yet, so everything lives under **Unreleased**
-until the first tagged version.
+This project adheres to [Semantic Versioning](https://semver.org/) - while
+the major version stays `0`, breaking changes can land in any release.
 
-## [Unreleased]
+## [0.1.0] - 2026-09-13
+
+First playable build: a controllable Marze with jump/dash/melee, one
+enemy type (the small demon) that spawns, chases, fights back, and dies,
+and a HUD tying it all together. Still missing most of the systems
+described in `CLAUDE.md` (items, difficulty tiers, the beacon/guardian
+loop, real title/pause/victory screens) - this is the foundation those
+build on next, not a feature-complete release.
 
 ### Added
 
@@ -102,6 +109,54 @@ until the first tagged version.
 - Marze got a real idle animation: `assets/graphics/Marze.png` is now
   128x32 (4 frames, 32x32 each) instead of a single flush 16x16 sprite.
   Player's `idle` animation plays all 4 frames (`interval: 0.2`).
+- Run animation: `Marze.png` gained a second row (3 frames); `PlayingState`
+  now switches between `idle`/`run` based on `move_direction` instead of
+  always playing `idle`.
+- Dash ability (`E` / HUD slot 3, `src/entities/player_states/DashState.py`):
+  a short, gravity-cancelling horizontal burst (`PLAYER_DASH_SPEED`,
+  `PLAYER_DASH_DURATION`) on `PLAYER_DASH_COOLDOWN` (3s), with its own
+  5-frame animation. Also grants `PLAYER_INVINCIBILITY_DURATION` (1s) of
+  invincibility - `Player.take_damage` no-ops entirely while it's active,
+  and `src/ui/HUD.py`'s HP bar swaps to a solid white "INVINCIBLE" bar for
+  that window instead of the normal fill/`hp/max` text.
+- Front-facing melee attack (`Q` / HUD slot 1,
+  `src/entities/player_states/AttackState.py`): plays a dedicated 3-frame
+  swing animation, deals `PLAYER_ATTACK_DAMAGE` to anything with a
+  `take_damage` method inside `Player.attack_hitbox_rect()`
+  (`HIT_DELAY`-timed, not instant on enter). Rooted (`vx = 0`) while
+  grounded, but keeps full movement control mid-air so a jump-attack
+  doesn't stall dead in the air. `Marze.png` grew to 250x160 (50x40
+  padded cells, room for the swing to animate) - `Player.sprite_offset`
+  re-centers the art on the unchanged 32x32 hitbox.
+- Ability HUD: `Q`/`W`/`E`/`R` map 1:1 to the 4 `marze-abilities.png`
+  icons/HUD slots (`W`/`R` reserved for future abilities, currently
+  unbound). Each slot reads `Player.get_ability_cooldown(slot)` and, while
+  on cooldown, draws a translucent gray overlay plus the ceiling of the
+  seconds remaining.
+- `SmallDemon` now has `hp`/`max_hp` (`settings.DEMON_MAX_HP`) and
+  `take_damage()`, which spawns a `DamageNumber` and interrupts whatever
+  it was doing to play a new `HurtState` (brief stagger, then resumes
+  chasing) or, once hp runs out, `DeadState` (plays the death animation
+  once, then sets `is_dead` so `Level.update` drops it). `Player`'s attack
+  and the demon's own attack both route incoming damage through
+  `take_damage` now rather than mutating `hp` directly, so invincibility
+  and hurt/death reactions apply uniformly.
+- Overhead enemy health bar (`src/ui/health_bar.py`): a small red bar
+  above any entity flagged `SHOW_HEALTH_BAR = True`, drawn only while
+  `hp < max_hp`.
+- Demon spawn animation (`SpawnState`, `small-demon.png`'s new 7th row,
+  4 frames): every demon plays this once on creation before handing off
+  to `FollowState`/`IdleState`.
+- Periodic randomized enemy spawning: `PlayState._spawn_demon` now fires
+  every `DEMON_SPAWN_INTERVAL` seconds (instead of once at level start),
+  placing a demon on solid ground somewhere between
+  `DEMON_SPAWN_MIN_DISTANCE_TILES` and `DEMON_SPAWN_MAX_DISTANCE_TILES`
+  tiles from the player's *current* position, randomly to either side, as
+  long as fewer than `DEMON_MAX_ACTIVE` are already alive.
+- Debug hitbox/hurtbox overlay is now a live toggle: `H`
+  (`toggle_debug_hitboxes`) flips `settings.DEBUG_HITBOXES` at runtime
+  from `src.Game.on_input`, defaulting to off at startup instead of the
+  overlay being permanently on.
 
 ### Changed
 
@@ -121,6 +176,22 @@ until the first tagged version.
 - `TitleState`, `PauseState`, `GameOverState`, `VictoryState` now forward
   straight to `PlayState` on `enter()` (marked `TODO`), so the game is
   reachable for testing before those screens exist.
+- Jump is now fixed-height: removed the hold-to-jump-higher mechanic
+  entirely (`jump_held`, `STOP_JUMP`, `settings.JUMP_CUT_VELOCITY` are all
+  gone) and lowered `JUMP_TAKEOFF_SPEED` (`GRAVITY / 3` → `GRAVITY / 4`)
+  for a smaller jump now that it's always full height.
+- Ability inputs are dropped, not buffered: pressing dash/attack/jump
+  while `AttackState`/`DashState` is active used to sit in
+  `dash_requested`/`attack_requested`/`jump_requested` and fire the
+  instant control returned to `PlayingState`. Both states now clear all
+  three every frame while they're active, so a press mid-action is
+  simply ignored - it has to be pressed again once the player is
+  actually free to act on it.
+- Attack hitboxes (`Player.attack_hitbox_rect`,
+  `SmallDemon.melee_range_rect`) no longer include the attacker's own
+  hurtbox width - previously `RANGE + width` starting at the attacker's
+  own edge, which visibly overlapped the attacker; now just a
+  `RANGE`-wide strip flush against the facing side.
 
 ### Fixed
 
@@ -150,3 +221,15 @@ until the first tagged version.
   both sides of the demon, so it could hit (and show a hitbox for) a
   target directly behind it, not just the one it's facing. Now extends
   the range only on the side `self.flipped` is currently facing.
+- `DungeonProb.init()` (`src/Game.py`) registered itself as an
+  `InputHandler` listener a second time on top of the registration
+  `gale.game.Game.__init__` already does, so every input notified
+  `on_input` twice. Harmless for one-shot commands, but it silently
+  canceled out the (later added) debug-hitbox toggle - flip, then flip
+  back in the same frame. Removed the redundant registration.
+- Run animation pointed at stale frame indices (`[4, 5, 6]`, then
+  `[7, 8, 9]`) after `Marze.png`'s column count changed with each
+  subsequent sprite addition (dash row, then attack row) - `generate_frames`
+  numbers frames row-major by the *current* column count, so adding
+  columns shifts every later row's indices. Now `[5, 6, 7]`, matching the
+  current 5-column sheet.
