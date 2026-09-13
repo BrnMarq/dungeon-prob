@@ -12,7 +12,6 @@ from src.commands import (
     JUMP,
     MOVE_LEFT,
     MOVE_RIGHT,
-    STOP_JUMP,
     STOP_MOVE_LEFT,
     STOP_MOVE_RIGHT,
 )
@@ -77,7 +76,7 @@ class Player(Entity):
         self.command_bindings.bind(
             "move_right", press=MOVE_RIGHT, release=STOP_MOVE_RIGHT
         )
-        self.command_bindings.bind("jump", press=JUMP, release=STOP_JUMP)
+        self.command_bindings.bind("jump", press=JUMP)
         self.command_bindings.bind("dash", press=DASH)
         self.command_bindings.bind("attack", press=ATTACK)
 
@@ -110,17 +109,16 @@ class Player(Entity):
         )
 
     def attack_hitbox_rect(self) -> pygame.Rect:
-        """The world-space rect AttackState lands its hit against - facing
-        the direction Marze is currently flipped toward, same convention
-        as src.entities.SmallDemon.melee_range_rect.
+        """The world-space rect AttackState lands its hit against - just
+        the strip in front of Marze's own hurtbox (facing the direction
+        currently flipped toward), not overlapping it, same convention as
+        src.entities.SmallDemon.melee_range_rect.
         """
         if self.flipped:
             x = self.x - settings.PLAYER_ATTACK_RANGE
         else:
-            x = self.x
-        return pygame.Rect(
-            x, self.y, settings.PLAYER_ATTACK_RANGE + self.width, self.height
-        )
+            x = self.x + self.width
+        return pygame.Rect(x, self.y, settings.PLAYER_ATTACK_RANGE, self.height)
 
     def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
         """Debug-overlay hook (src/debug.py, src/map/Level.py) - only

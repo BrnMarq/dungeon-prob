@@ -92,21 +92,16 @@ class SmallDemon(Entity):
         source of truth so "when to attack" and "does it land" never
         disagree with each other or with the debug overlay.
 
-        Extends settings.DEMON_ATTACK_RANGE past the entity's own hurtbox
-        only on the side it's currently facing (self.flipped - set by
-        FollowState from move_direction) - a demon facing right doesn't
-        also threaten whatever is behind it.
+        Just the strip past the entity's own hurtbox on the side it's
+        currently facing (self.flipped - set by FollowState from
+        move_direction), not overlapping the hurtbox itself - a demon
+        facing right doesn't also threaten whatever is behind it.
         """
         if self.flipped:
             x = self.x - settings.DEMON_ATTACK_RANGE
         else:
-            x = self.x
-        return pygame.Rect(
-            x,
-            self.y,
-            settings.DEMON_ATTACK_RANGE + self.width,
-            self.height,
-        )
+            x = self.x + self.width
+        return pygame.Rect(x, self.y, settings.DEMON_ATTACK_RANGE, self.height)
 
     def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
         """Debug-overlay hook (src/debug.py, src/map/Level.py) - only

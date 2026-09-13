@@ -13,9 +13,9 @@ class Entity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMixin)
     their own states and animation defs and drive behavior through the
     state machine.
 
-    move_direction/jump_requested/jump_held only record intent - see
-    src/commands.py. States read them to decide vx/animation/transitions
-    each frame; nothing here acts on them directly.
+    move_direction/jump_requested only record intent - see src/commands.py.
+    States read them to decide vx/animation/transitions each frame;
+    nothing here acts on them directly.
     """
 
     COLLISION_LAYER = "ground"
@@ -39,7 +39,6 @@ class Entity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMixin)
         self.vy: float = 0
         self.move_direction: int = 0
         self.jump_requested: bool = False
-        self.jump_held: bool = False
         self.texture_id = texture_id
         self.frame_index = -1
         self.level = level

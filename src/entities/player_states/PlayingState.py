@@ -3,9 +3,9 @@ from src.entities.states.BaseEntityState import BaseEntityState
 
 
 class PlayingState(BaseEntityState):
-    """Single catch-all state driving Marze - ground/air movement and
-    variable-height jumping, switching between idle/run. Split further
-    into jump/fall once there are frames to tell them apart.
+    """Single catch-all state driving Marze - ground/air movement and a
+    fixed-height jump, switching between idle/run. Split further into
+    jump/fall once there are frames to tell them apart.
     """
 
     def enter(self) -> None:
@@ -38,8 +38,3 @@ class PlayingState(BaseEntityState):
             self.entity.jump_requested = False
             if self.entity.on_ground:
                 self.entity.vy = -settings.JUMP_TAKEOFF_SPEED
-
-        # See settings.JUMP_TAKEOFF_SPEED/JUMP_CUT_VELOCITY for the
-        # variable-height jump this implements.
-        if not self.entity.jump_held and self.entity.vy < -settings.JUMP_CUT_VELOCITY:
-            self.entity.vy = -settings.JUMP_CUT_VELOCITY

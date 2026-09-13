@@ -20,6 +20,11 @@ class DashState(BaseEntityState):
         self.entity.invincible_timer = settings.PLAYER_INVINCIBILITY_DURATION
 
     def update(self, dt: float) -> None:
+        # Dropped, not buffered - see AttackState.update's identical guard.
+        self.entity.dash_requested = False
+        self.entity.attack_requested = False
+        self.entity.jump_requested = False
+
         self.timer -= dt
         self.entity.vy = 0
 
