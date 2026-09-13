@@ -141,9 +141,12 @@ TILEMAPS = {
 #     'my_texture': pygame.image.load(BASE_DIR / "assets" / "graphics" / "my_texture.png")
 # }
 TEXTURES = {
-    # 160x96 - 5x3 grid of 32x32 cells, matching src.entities.Player's
-    # 32x32 collision box. Row-major frame indices: idle 0-3 (rest of row
-    # 0 unused), run 5-7 (rest of row 1 unused), dash 10-14.
+    # 250x160 - 5x4 grid of 50x40 cells, padded larger than
+    # src.entities.Player's 32x32 collision box to give the attack swing
+    # room to animate (Player.sprite_offset re-centers it on the hitbox).
+    # Row-major frame indices: idle 0-3 (rest of row 0 unused), run 5-7
+    # (rest of row 1 unused), dash 10-14, attack 15-17 (rest of row 3
+    # unused).
     "marze": pygame.image.load(BASE_DIR / "assets" / "graphics" / "Marze.png"),
     "small_demon": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "small-demon.png"
@@ -159,7 +162,7 @@ TEXTURES = {
 #     'my_frames': frames.generate_frames(TEXTURES['my_texture'], 16, 16)
 # }
 FRAMES = {
-    "marze": frames.generate_frames(TEXTURES["marze"], 32, 32),
+    "marze": frames.generate_frames(TEXTURES["marze"], 50, 40),
     # 800x700, 8 cols x 7 rows of 100x100 cells. Row-major frame indices:
     # idle 0-5, run 8-15, (unused) 16-22, attack 24-30, hurt 32-35,
     # dead 40-43, spawn 48-51.

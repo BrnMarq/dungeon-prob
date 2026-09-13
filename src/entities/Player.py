@@ -46,9 +46,20 @@ class Player(Entity):
                     "interval": settings.PLAYER_DASH_DURATION / 5,
                     "loops": 1,
                 },
+                "attack": {
+                    "frames": [15, 16, 17],
+                    "interval": settings.PLAYER_ATTACK_DURATION / 3,
+                    "loops": 1,
+                },
             },
         )
         self.change_state("playing")
+
+        # Marze.png's cells are padded larger than the 32x32 hitbox (to
+        # give the attack swing room to animate) - re-centers the sprite
+        # horizontally and keeps its feet at the hitbox's bottom edge,
+        # measured from the idle frame's opaque-pixel bounding box.
+        self.sprite_offset = (10, 3)
 
         self.level_num = 1
         self.max_hp = settings.PLAYER_MAX_HP
