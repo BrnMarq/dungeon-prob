@@ -78,6 +78,10 @@ PLAYER_INVINCIBILITY_DURATION = 1.0
 # No dedicated sprite yet, so it plays the idle animation for its duration
 # instead - see AttackState for the hit-frame timing this implies.
 PLAYER_ATTACK_RANGE = 20
+# How far the hitbox's near edge sits inside Marze's own hurtbox rather
+# than starting flush at it - the swing visually originates from the
+# body, not a hard edge, without going back to covering the whole hurtbox.
+PLAYER_ATTACK_INSET = 6
 PLAYER_ATTACK_DAMAGE = 15
 PLAYER_ATTACK_DURATION = 0.3
 

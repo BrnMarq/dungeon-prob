@@ -109,15 +109,16 @@ class Player(Entity):
         )
 
     def attack_hitbox_rect(self) -> pygame.Rect:
-        """The world-space rect AttackState lands its hit against - just
+        """The world-space rect AttackState lands its hit against - mostly
         the strip in front of Marze's own hurtbox (facing the direction
-        currently flipped toward), not overlapping it, same convention as
-        src.entities.SmallDemon.melee_range_rect.
+        currently flipped toward), dipping PLAYER_ATTACK_INSET back inside
+        it rather than sitting completely flush, but nowhere near covering
+        the whole hurtbox the way it used to.
         """
         if self.flipped:
-            x = self.x - settings.PLAYER_ATTACK_RANGE
+            x = self.x - settings.PLAYER_ATTACK_RANGE + settings.PLAYER_ATTACK_INSET
         else:
-            x = self.x + self.width
+            x = self.x + self.width - settings.PLAYER_ATTACK_INSET
         return pygame.Rect(x, self.y, settings.PLAYER_ATTACK_RANGE, self.height)
 
     def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
