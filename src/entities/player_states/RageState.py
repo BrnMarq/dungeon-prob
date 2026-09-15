@@ -31,7 +31,7 @@ class RageState(BaseEntityState):
 
         if self.entity.move_direction != 0:
             self.entity.flipped = self.entity.move_direction < 0
-        self.entity.vx = settings.PLAYER_SPEED * self.entity.move_direction
+        self.entity.vx = self.entity.speed * self.entity.move_direction
 
     def _land_hit(self) -> None:
         entity = self.entity
@@ -50,7 +50,7 @@ class RageState(BaseEntityState):
             if distance > settings.PLAYER_RAGE_RADIUS:
                 continue
 
-            other.take_damage(settings.PLAYER_RAGE_DAMAGE)
+            other.take_damage(entity.get_damage(settings.PLAYER_RAGE_DAMAGE))
 
     def update(self, dt: float) -> None:
         # Dropped, not buffered - see AttackState.update's identical guard.

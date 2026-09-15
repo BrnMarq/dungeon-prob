@@ -46,7 +46,7 @@ class PlayingState(BaseEntityState):
             "run" if self.entity.move_direction != 0 else "idle"
         )
 
-        self.entity.vx = settings.PLAYER_SPEED * self.entity.move_direction
+        self.entity.vx = self.entity.speed * self.entity.move_direction
 
         if self.entity.jump_requested:
             self.entity.jump_requested = False

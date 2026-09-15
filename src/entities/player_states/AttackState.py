@@ -32,7 +32,7 @@ class AttackState(BaseEntityState):
 
         if self.entity.move_direction != 0:
             self.entity.flipped = self.entity.move_direction < 0
-        self.entity.vx = settings.PLAYER_SPEED * self.entity.move_direction
+        self.entity.vx = self.entity.speed * self.entity.move_direction
 
     def _land_hit(self) -> None:
         hitbox = self.entity.attack_hitbox_rect()
@@ -44,7 +44,7 @@ class AttackState(BaseEntityState):
             if not hitbox.colliderect(other.get_collision_rect()):
                 continue
 
-            other.take_damage(settings.PLAYER_ATTACK_DAMAGE)
+            other.take_damage(self.entity.get_damage(settings.PLAYER_ATTACK_DAMAGE))
 
     def update(self, dt: float) -> None:
         # Dropped, not buffered - a dash/jump/another attack pressed while
@@ -63,5 +63,5 @@ class AttackState(BaseEntityState):
             self._hit_landed = True
             self._land_hit()
 
-        if self._elapsed >= settings.PLAYER_ATTACK_DURATION:
+        if self._elapsed >= self.entity.attack_duration:
             self.entity.change_state("playing")

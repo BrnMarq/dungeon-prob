@@ -31,7 +31,7 @@ class ThrowState(BaseEntityState):
 
         if self.entity.move_direction != 0:
             self.entity.flipped = self.entity.move_direction < 0
-        self.entity.vx = settings.PLAYER_SPEED * self.entity.move_direction
+        self.entity.vx = self.entity.speed * self.entity.move_direction
 
     def _spawn_sword(self) -> None:
         entity = self.entity
