@@ -24,6 +24,7 @@ class DashState(BaseEntityState):
         self.entity.dash_requested = False
         self.entity.attack_requested = False
         self.entity.jump_requested = False
+        self.entity.rage_requested = False
 
         self.timer -= dt
         self.entity.vy = 0

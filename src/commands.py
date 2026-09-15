@@ -52,6 +52,16 @@ class AttackCommand(Command):
         receiver.attack_requested = True
 
 
+class ThrowCommand(Command):
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.throw_requested = True
+
+
+class RageCommand(Command):
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.rage_requested = True
+
+
 MOVE_LEFT = MoveLeftCommand()
 MOVE_RIGHT = MoveRightCommand()
 STOP_MOVE_LEFT = StopMoveLeftCommand()
@@ -59,3 +69,5 @@ STOP_MOVE_RIGHT = StopMoveRightCommand()
 JUMP = JumpCommand()
 DASH = DashCommand()
 ATTACK = AttackCommand()
+THROW = ThrowCommand()
+RAGE = RageCommand()

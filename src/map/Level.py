@@ -62,3 +62,14 @@ class Level:
                     debug.draw_translucent_rect(
                         surface, camera, hitbox, settings.DEBUG_HITBOX_COLOR
                     )
+            if hasattr(entity, "get_rage_hitbox_circle"):
+                circle = entity.get_rage_hitbox_circle()
+                if circle is not None:
+                    center_x, center_y, radius = circle
+                    debug.draw_translucent_circle(
+                        surface,
+                        camera,
+                        (center_x, center_y),
+                        radius,
+                        settings.DEBUG_HITBOX_COLOR,
+                    )

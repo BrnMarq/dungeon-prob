@@ -54,6 +54,7 @@ class AttackState(BaseEntityState):
         self.entity.dash_requested = False
         self.entity.attack_requested = False
         self.entity.jump_requested = False
+        self.entity.rage_requested = False
 
         self._update_vx()
         self._elapsed += dt

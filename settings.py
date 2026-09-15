@@ -85,6 +85,64 @@ PLAYER_ATTACK_INSET = 6
 PLAYER_ATTACK_DAMAGE = 15
 PLAYER_ATTACK_DURATION = 0.3
 
+# Thrown sword (W ability) - src.entities.player_states.ThrowState plays
+# Marze.png's 3-frame throw wind-up, then hands off to src.entities.
+# ThrownSword for the projectile itself (assets/graphics/dark-sword.png).
+PLAYER_THROW_DAMAGE = 15
+PLAYER_THROW_DURATION = 0.3
+PLAYER_THROW_COOLDOWN = 4
+
+# Invincible radius burst (R ability) - src.entities.player_states.RageState
+# plays Marze.png's row-5 3-frame wind-up (frames 25-27), holds on the last
+# frame for the bulk of the duration, then plays it backward as the ability
+# ends. Hits everything within PLAYER_RAGE_RADIUS of the player's center
+# PLAYER_RAGE_HITS times, evenly spaced across PLAYER_RAGE_DURATION.
+PLAYER_RAGE_DURATION = 2.0
+PLAYER_RAGE_RADIUS = 64
+PLAYER_RAGE_HITS = 8
+PLAYER_RAGE_HIT_INTERVAL = PLAYER_RAGE_DURATION / PLAYER_RAGE_HITS
+PLAYER_RAGE_DAMAGE = 10
+PLAYER_RAGE_COOLDOWN = 8
+# Each direction (wind-up, wind-down) of the 3-frame row-5 animation plays
+# over this many seconds per frame - independent of PLAYER_RAGE_DURATION so
+# it reads as a quick flourish rather than stretching across the whole burst.
+PLAYER_RAGE_ANIM_FRAME_INTERVAL = 0.1
+
+# ThrownSword's flight: same speed/duration as the dash, so it travels the
+# same distance in the same time (PLAYER_DASH_SPEED * PLAYER_DASH_DURATION).
+SWORD_SPEED = PLAYER_DASH_SPEED
+SWORD_TRAVEL_DISTANCE = SWORD_SPEED * PLAYER_DASH_DURATION
+# Fraction of SWORD_TRAVEL_DISTANCE covered by each of dark-sword.png's
+# flight animations, in order - thrown/midair/near_max_travel - the
+# remainder (up to 1.0) is near_max_travel's share.
+SWORD_THROWN_DISTANCE_FRACTION = 0.2
+SWORD_MIDAIR_DISTANCE_FRACTION = 0.7
+# Frame intervals derived so each flight animation plays out exactly over
+# the portion of PLAYER_DASH_DURATION its distance fraction takes at
+# SWORD_SPEED - same trick as PLAYER_DASH_DURATION / 5 for the dash streak.
+SWORD_THROWN_FRAME_INTERVAL = PLAYER_DASH_DURATION * SWORD_THROWN_DISTANCE_FRACTION / 3
+SWORD_MIDAIR_FRAME_INTERVAL = (
+    PLAYER_DASH_DURATION
+    * (SWORD_MIDAIR_DISTANCE_FRACTION - SWORD_THROWN_DISTANCE_FRACTION)
+    / 2
+)
+SWORD_NEAR_MAX_FRAME_INTERVAL = (
+    PLAYER_DASH_DURATION * (1 - SWORD_MIDAIR_DISTANCE_FRACTION) / 4
+)
+
+# Once landed, ThrownSword loops its 3 floating frames and tweens its y
+# position with a sine wave - amplitude in pixels, speed in radians/second.
+SWORD_FLOAT_FRAME_INTERVAL = 0.15
+SWORD_FLOAT_AMPLITUDE = 4
+SWORD_FLOAT_SPEED = 3.0
+
+# Touching a floating sword detonates it - gale.particle_system burst plus
+# area damage, and refunds the player's dash (see ThrownSword._explode).
+SWORD_EXPLOSION_RADIUS = 48
+SWORD_EXPLOSION_DAMAGE = 20
+SWORD_EXPLOSION_PARTICLE_COUNT = 24
+SWORD_EXPLOSION_COLOR = pygame.Color(20, 20, 20, 255)
+
 # Used by src.entities.enemy_states.FollowState/AttackState.
 DEMON_SPEED = 40
 DEMON_ATTACK_RANGE = 24
@@ -141,12 +199,13 @@ TILEMAPS = {
 #     'my_texture': pygame.image.load(BASE_DIR / "assets" / "graphics" / "my_texture.png")
 # }
 TEXTURES = {
-    # 250x160 - 5x4 grid of 50x40 cells, padded larger than
+    # 250x240 - 5x6 grid of 50x40 cells, padded larger than
     # src.entities.Player's 32x32 collision box to give the attack swing
     # room to animate (Player.sprite_offset re-centers it on the hitbox).
     # Row-major frame indices: idle 0-3 (rest of row 0 unused), run 5-7
     # (rest of row 1 unused), dash 10-14, attack 15-17 (rest of row 3
-    # unused).
+    # unused), throw 20-22 (W ability wind-up, rest of row 4 unused), rage
+    # 25-27 (R ability wind-up/wind-down, rest of row 5 unused).
     "marze": pygame.image.load(BASE_DIR / "assets" / "graphics" / "Marze.png"),
     "small_demon": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "small-demon.png"
@@ -154,6 +213,13 @@ TEXTURES = {
     # 128x32 - 4 distinct 32x32 ability icons, in HUD slot order.
     "marze_abilities": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "marze-abilities.png"
+    ),
+    # 128x128 - 4x4 grid of 32x32 cells, the W ability's projectile
+    # (src.entities.ThrownSword). Row-major frame indices: thrown 0-2,
+    # midair 4-5, near_max_travel 8-11, floating 12-14 (unused cells on
+    # each row's tail are blank).
+    "dark_sword": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "dark-sword.png"
     ),
 }
 
@@ -168,6 +234,7 @@ FRAMES = {
     # dead 40-43, spawn 48-51.
     "small_demon": frames.generate_frames(TEXTURES["small_demon"], 100, 100),
     "marze_abilities": frames.generate_frames(TEXTURES["marze_abilities"], 32, 32),
+    "dark_sword": frames.generate_frames(TEXTURES["dark_sword"], 32, 32),
 }
 
 # Register your sound from the sounds folder, for instance:

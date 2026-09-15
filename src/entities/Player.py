@@ -12,12 +12,20 @@ from src.commands import (
     JUMP,
     MOVE_LEFT,
     MOVE_RIGHT,
+    RAGE,
     STOP_MOVE_LEFT,
     STOP_MOVE_RIGHT,
+    THROW,
 )
 from src.entities.DamageNumber import DamageNumber
 from src.entities.Entity import Entity
-from src.entities.player_states import AttackState, DashState, PlayingState
+from src.entities.player_states import (
+    AttackState,
+    DashState,
+    PlayingState,
+    RageState,
+    ThrowState,
+)
 
 
 class Player(Entity):
@@ -36,6 +44,8 @@ class Player(Entity):
                 "playing": lambda sm: PlayingState(self, sm),
                 "dash": lambda sm: DashState(self, sm),
                 "attack": lambda sm: AttackState(self, sm),
+                "throw": lambda sm: ThrowState(self, sm),
+                "rage": lambda sm: RageState(self, sm),
             },
             animation_defs={
                 "idle": {"frames": [0, 1, 2, 3], "interval": 0.2},
@@ -48,6 +58,21 @@ class Player(Entity):
                 "attack": {
                     "frames": [15, 16, 17],
                     "interval": settings.PLAYER_ATTACK_DURATION / 3,
+                    "loops": 1,
+                },
+                "throw": {
+                    "frames": [20, 21, 22],
+                    "interval": settings.PLAYER_THROW_DURATION / 3,
+                    "loops": 1,
+                },
+                "rage": {
+                    "frames": [25, 26, 27],
+                    "interval": settings.PLAYER_RAGE_ANIM_FRAME_INTERVAL,
+                    "loops": 1,
+                },
+                "rage_reverse": {
+                    "frames": [27, 26, 25],
+                    "interval": settings.PLAYER_RAGE_ANIM_FRAME_INTERVAL,
                     "loops": 1,
                 },
             },
@@ -69,6 +94,10 @@ class Player(Entity):
         self.dash_requested = False
         self.dash_cooldown_timer = 0.0
         self.attack_requested = False
+        self.throw_requested = False
+        self.throw_cooldown_timer = 0.0
+        self.rage_requested = False
+        self.rage_cooldown_timer = 0.0
         self.invincible_timer = 0.0
 
         self.command_bindings = CommandBindings()
@@ -79,6 +108,8 @@ class Player(Entity):
         self.command_bindings.bind("jump", press=JUMP)
         self.command_bindings.bind("dash", press=DASH)
         self.command_bindings.bind("attack", press=ATTACK)
+        self.command_bindings.bind("ability_2", press=THROW)
+        self.command_bindings.bind("ability_4", press=RAGE)
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         self.command_bindings.dispatch(self, input_id, input_data)
@@ -87,6 +118,10 @@ class Player(Entity):
         super().update(dt)
         if self.dash_cooldown_timer > 0:
             self.dash_cooldown_timer -= dt
+        if self.throw_cooldown_timer > 0:
+            self.throw_cooldown_timer -= dt
+        if self.rage_cooldown_timer > 0:
+            self.rage_cooldown_timer -= dt
         if self.invincible_timer > 0:
             self.invincible_timer -= dt
 
@@ -129,12 +164,31 @@ class Player(Entity):
             return None
         return self.attack_hitbox_rect()
 
+    def get_rage_hitbox_circle(self) -> Optional[Tuple[float, float, float]]:
+        """Debug-overlay hook (src/debug.py, src/map/Level.py) - (center_x,
+        center_y, radius) of the R ability's hit area, only exposed while
+        actually mid-burst. Mirrors get_attack_hitbox_rect's pattern, but a
+        circle instead of a rect since RageState hits by distance, not
+        rect overlap - see RageState._land_hit.
+        """
+        if not isinstance(self.state_machine.current, RageState):
+            return None
+        return (
+            self.x + self.width / 2,
+            self.y + self.height / 2,
+            settings.PLAYER_RAGE_RADIUS,
+        )
+
     def get_ability_cooldown(self, slot: int) -> Tuple[float, float]:
         """(seconds remaining, total cooldown) for src.ui.HUD's ability bar,
         indexed the same way as marze-abilities.png/Q-W-E-R: 0 attack, 1
-        unused, 2 dash, 3 unused. (0, 0) means "not on cooldown" - covers
+        throw, 2 dash, 3 rage. (0, 0) means "not on cooldown" - covers
         both a ready ability and one with no cooldown at all (e.g. attack).
         """
+        if slot == 1:
+            return self.throw_cooldown_timer, settings.PLAYER_THROW_COOLDOWN
         if slot == 2:
             return self.dash_cooldown_timer, settings.PLAYER_DASH_COOLDOWN
+        if slot == 3:
+            return self.rage_cooldown_timer, settings.PLAYER_RAGE_COOLDOWN
         return 0.0, 0.0
