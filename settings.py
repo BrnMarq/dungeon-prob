@@ -186,6 +186,18 @@ DEBUG_HITBOX_COLOR = (220, 40, 40, 90)  # translucent red - attack hit areas
 PLAYER_MAX_HP = 100
 PLAYER_XP_TO_NEXT_LEVEL = 100
 
+# Stat-boosting item pickups (src.items.Pickup / src.items.definitions) -
+# each is stackable (src.entities.Player.item_stacks), applying its bonus
+# again per pickup of the same item. Cane/knife/heart stack additively;
+# shield/daggers stack multiplicatively (diminishing returns) so neither
+# can reach 0 - see Player.speed/get_damage/attack_duration/take_damage.
+ITEM_SPEED_BONUS = 0.10  # Walking cane - fraction of PLAYER_SPEED, per stack
+ITEM_HP_BONUS = 20  # Frozen heart - flat max_hp (and immediate heal), per stack
+ITEM_DAMAGE_BONUS = 0.10  # Bloody knife - fraction of base damage, per stack
+ITEM_RESISTANCE_FACTOR = 0.92  # Aegis shield - incoming damage multiplier, per stack
+ITEM_ATTACK_SPEED_FACTOR = 0.9  # Short daggers - attack duration multiplier, per stack
+ITEM_ATTACK_DURATION_FLOOR = 0.05  # Floor so daggers stacks can't zero out the swing
+
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
 #     'zone_1': str(BASE_DIR / "assets" / "maps" / "zone_1.json")
@@ -221,6 +233,11 @@ TEXTURES = {
     "dark_sword": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "dark-sword.png"
     ),
+    # 80x16 - 5 distinct 16x16 item icons (stat-boosting pickups,
+    # src.items.Pickup), each with a white outline baked into the art.
+    # Frame indices 0-4, in src.items.definitions.ITEMS order: cane,
+    # heart, knife, shield, daggers.
+    "items": pygame.image.load(BASE_DIR / "assets" / "graphics" / "items.png"),
 }
 
 # Register your frames, for instance:
@@ -235,6 +252,7 @@ FRAMES = {
     "small_demon": frames.generate_frames(TEXTURES["small_demon"], 100, 100),
     "marze_abilities": frames.generate_frames(TEXTURES["marze_abilities"], 32, 32),
     "dark_sword": frames.generate_frames(TEXTURES["dark_sword"], 32, 32),
+    "items": frames.generate_frames(TEXTURES["items"], 16, 16),
 }
 
 # Register your sound from the sounds folder, for instance:
