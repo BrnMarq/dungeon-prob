@@ -9,6 +9,8 @@ from gale.input_handler import InputData
 import settings
 from src.entities.Player import Player
 from src.entities.SmallDemon import SmallDemon
+from src.items.definitions import ITEMS
+from src.items.Pickup import Pickup
 from src.map.Level import Level
 from src.states.BaseState import BaseState
 from src.ui.HUD import HUD
@@ -37,6 +39,7 @@ class PlayState(BaseState):
         self.spawn_timer = 0.0
 
         self.hud = HUD(self.player)
+        self._spawn_test_items()
 
     def _spawn_demon(self) -> None:
         active_demons = sum(
@@ -64,6 +67,24 @@ class PlayState(BaseState):
         spawn_y = row * self.level.tilemap.tile_height - SmallDemon.HEIGHT
         demon = SmallDemon(spawn_x, spawn_y, self.level, target=self.player)
         self.level.entities.append(demon)
+
+    def _spawn_test_items(self) -> None:
+        """One of each item (src.items.definitions.ITEMS), standing on
+        ground at the end of the map, one tile apart - for manually
+        testing pickups. Not a real drop table; see the design spec's
+        Non-goals.
+        """
+        tile_width = self.level.tilemap.tile_width
+        last_col = self.level.tilemap.cols - 1
+        for offset, item_id in enumerate(ITEMS.keys()):
+            col = last_col - offset
+            row = self.level.ground_row(col)
+            if row is None:
+                continue
+
+            x = col * tile_width
+            y = row * self.level.tilemap.tile_height - Pickup.HEIGHT
+            self.level.entities.append(Pickup(x, y, item_id, self.player, self.level))
 
     def exit(self) -> None:
         pass
