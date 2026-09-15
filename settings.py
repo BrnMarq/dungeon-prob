@@ -202,7 +202,7 @@ ITEM_ATTACK_DURATION_FLOOR = 0.05  # Floor so daggers stacks can't zero out the 
 # ThrownSword's floating swords, just its own constants since the icons
 # are half the size (16x16 vs 32x32) and may want independent tuning.
 ITEM_FLOAT_AMPLITUDE = 3
-ITEM_FLOAT_SPEED = 3.0
+ITEM_FLOAT_SPEED = 4.5
 
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
