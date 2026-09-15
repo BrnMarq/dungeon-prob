@@ -5,14 +5,24 @@ as src.entities.ThrownSword/DamageNumber (update/render/is_dead, plus
 get_collision_rect) so src.map.Level's entities list needs no
 special-casing. Touching the player applies its stat via
 Player.collect_item and removes itself - no VFX/SFX, no respawn.
+
+Idles with the same sine-tween bob as ThrownSword's floating swords
+(base_y + sin(elapsed * speed) * amplitude), and renders a white
+silhouette outline a pixel outside the sprite's own edges each frame -
+on top of (not instead of) the white outline already baked into the
+art - so it reads as a glow even against similarly-colored backgrounds.
 """
 
 from typing import Any, TypeVar
+
+import math
 
 import pygame
 
 import settings
 from src.items.definitions import ITEMS
+
+_OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 
 class Pickup:
@@ -38,6 +48,9 @@ class Pickup:
         self.is_dead = False
         self.frame_index = ITEMS[item_id]["frame_index"]
 
+        self.base_y = y
+        self.float_elapsed = 0.0
+
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
 
@@ -45,6 +58,12 @@ class Pickup:
         if self.get_collision_rect().colliderect(self.player.get_collision_rect()):
             self.player.collect_item(self.item_id)
             self.is_dead = True
+            return
+
+        self.float_elapsed += dt
+        self.y = self.base_y + math.sin(
+            self.float_elapsed * settings.ITEM_FLOAT_SPEED
+        ) * settings.ITEM_FLOAT_AMPLITUDE
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
         texture = settings.TEXTURES[self.TEXTURE_ID]
@@ -54,4 +73,11 @@ class Pickup:
         image.blit(texture, (0, 0), frame)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
+
+        outline = pygame.mask.from_surface(image).to_surface(
+            setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0)
+        )
+        for dx, dy in _OUTLINE_OFFSETS:
+            surface.blit(outline, dest.move(dx, dy))
+
         surface.blit(image, dest)

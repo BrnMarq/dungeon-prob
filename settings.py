@@ -198,6 +198,12 @@ ITEM_RESISTANCE_FACTOR = 0.92  # Aegis shield - incoming damage multiplier, per 
 ITEM_ATTACK_SPEED_FACTOR = 0.9  # Short daggers - attack duration multiplier, per stack
 ITEM_ATTACK_DURATION_FLOOR = 0.05  # Floor so daggers stacks can't zero out the swing
 
+# Pickup idle bob (src.items.Pickup) - same sine-tween trick as
+# ThrownSword's floating swords, just its own constants since the icons
+# are half the size (16x16 vs 32x32) and may want independent tuning.
+ITEM_FLOAT_AMPLITUDE = 3
+ITEM_FLOAT_SPEED = 3.0
+
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
 #     'zone_1': str(BASE_DIR / "assets" / "maps" / "zone_1.json")
