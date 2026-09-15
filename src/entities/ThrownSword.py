@@ -38,6 +38,7 @@ class ThrownSword:
         x: float,
         y: float,
         direction: int,
+        damage: int,
         player: TypeVar("Player"),
         level: TypeVar("Level"),
     ) -> None:
@@ -47,6 +48,7 @@ class ThrownSword:
         self.height = self.HEIGHT
         self.start_x = x
         self.direction = direction
+        self.damage = damage
         self.flipped = direction < 0
         self.player = player
         self.level = level
@@ -137,7 +139,7 @@ class ThrownSword:
             if not hitbox.colliderect(other.get_collision_rect()):
                 continue
 
-            other.take_damage(settings.PLAYER_THROW_DAMAGE)
+            other.take_damage(self.damage)
             self._hit_entities.add(id(other))
 
     def _land(self) -> None:

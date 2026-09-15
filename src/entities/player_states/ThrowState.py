@@ -40,6 +40,7 @@ class ThrowState(BaseEntityState):
             entity.x + offset,
             entity.y + entity.height / 2 - ThrownSword.HEIGHT / 2,
             self.direction,
+            entity.get_damage(settings.PLAYER_THROW_DAMAGE),
             entity,
             entity.level,
         )
