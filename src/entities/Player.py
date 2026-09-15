@@ -1,3 +1,4 @@
+from collections import Counter
 from typing import Optional, Tuple, TypeVar
 
 import pygame
@@ -25,6 +26,13 @@ from src.entities.player_states import (
     PlayingState,
     RageState,
     ThrowState,
+)
+from src.items.definitions import (
+    ITEM_CANE,
+    ITEM_DAGGERS,
+    ITEM_HEART,
+    ITEM_KNIFE,
+    ITEM_SHIELD,
 )
 
 
@@ -99,6 +107,7 @@ class Player(Entity):
         self.rage_requested = False
         self.rage_cooldown_timer = 0.0
         self.invincible_timer = 0.0
+        self.item_stacks: Counter = Counter()
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind("move_left", press=MOVE_LEFT, release=STOP_MOVE_LEFT)
@@ -129,6 +138,53 @@ class Player(Entity):
     def is_invincible(self) -> bool:
         return self.invincible_timer > 0
 
+    def collect_item(self, item_id: str) -> None:
+        """Called by src.items.Pickup.update on touch - bumps the stack
+        count and, for the heart only, applies its effect immediately
+        (max_hp/hp are plain fields, not derived, so there's nothing to
+        recompute on demand the way speed/get_damage/attack_duration
+        below are). The other four items have no state beyond the stack
+        count itself.
+        """
+        self.item_stacks[item_id] += 1
+        if item_id == ITEM_HEART:
+            self.max_hp += settings.ITEM_HP_BONUS
+            self.hp += settings.ITEM_HP_BONUS
+
+    @property
+    def speed(self) -> float:
+        """Effective move speed - settings.PLAYER_SPEED plus the walking
+        cane's stacks, read by every state's movement instead of the raw
+        setting. Dash stays on settings.PLAYER_DASH_SPEED, unaffected -
+        it's a fixed burst, not "movement speed."
+        """
+        return settings.PLAYER_SPEED * (
+            1 + settings.ITEM_SPEED_BONUS * self.item_stacks[ITEM_CANE]
+        )
+
+    def get_damage(self, base: float) -> int:
+        """base scaled by the bloody knife's stacks - called by
+        AttackState/RageState with their own damage constant, and by
+        ThrowState when spawning a ThrownSword.
+        """
+        return round(
+            base * (1 + settings.ITEM_DAMAGE_BONUS * self.item_stacks[ITEM_KNIFE])
+        )
+
+    @property
+    def attack_duration(self) -> float:
+        """settings.PLAYER_ATTACK_DURATION shortened by the short
+        daggers' stacks (compounding, floored so it can never hit 0) -
+        read by AttackState instead of the raw setting. The "attack"
+        animation's own frame interval does NOT retime with this -
+        see the design spec's Non-goals.
+        """
+        return max(
+            settings.ITEM_ATTACK_DURATION_FLOOR,
+            settings.PLAYER_ATTACK_DURATION
+            * settings.ITEM_ATTACK_SPEED_FACTOR ** self.item_stacks[ITEM_DAGGERS],
+        )
+
     def take_damage(self, amount: int) -> None:
         """Reacts to incoming damage (see src.entities.enemy_states.
         AttackState._land_hit) - a no-op entirely while dashing's
@@ -138,6 +194,9 @@ class Player(Entity):
         if self.is_invincible:
             return
 
+        amount = round(
+            amount * settings.ITEM_RESISTANCE_FACTOR ** self.item_stacks[ITEM_SHIELD]
+        )
         self.hp = max(0, self.hp - amount)
         self.level.entities.append(
             DamageNumber(self.x + self.width / 2, self.y, amount)
