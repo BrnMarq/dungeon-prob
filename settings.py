@@ -206,6 +206,23 @@ DEMON_BASE_XP_REWARD = 10
 DIFFICULTY_INTERVAL_SECONDS = 60.0
 DIFFICULTY_MULTIPLIER_STEP = 0.1
 
+# Run timer sign (src.ui.HUD, assets/graphics/sign-timer.png) - the bar
+# fills once over this many seconds of elapsed play time and stays full
+# after, a one-shot overall run-progress indicator (separate from the
+# repeating DIFFICULTY_* cycle above).
+RUN_TIMER_MAX_DURATION_SECONDS = 1200.0  # 20 minutes
+# sign-timer.png is 32x64 - this inset rect (in the sprite's own pixel
+# space) is where the fill bar draws, centered within the post (itself a
+# 6px-wide, 38px-tall stem below the hook-shaped cap, tapering to a point
+# at the very bottom) but narrower than it so wood shows on either side.
+RUN_TIMER_BAR_RECT = pygame.Rect(23, 20, 2, 38)
+# The sign's flat brown board area above the bar (same sprite-space as
+# RUN_TIMER_BAR_RECT above) - where the mm:ss readout is centered.
+RUN_TIMER_LABEL_RECT = pygame.Rect(4, 8, 22, 8)
+RUN_TIMER_SCALE = 2
+RUN_TIMER_BAR_COLOR = pygame.Color(230, 200, 90)
+RUN_TIMER_TEXT_COLOR = pygame.Color(255, 255, 255)
+
 # Stat-boosting item pickups (src.items.Pickup / src.items.definitions) -
 # each is stackable (src.entities.Player.item_stacks), applying its bonus
 # again per pickup of the same item. Cane/knife/heart stack additively;
@@ -354,8 +371,11 @@ TEXTURES = {
     ),
     # 128x32 - 4 32x32 coin-spin frames, looped by src.ui.HUD next to the
     # gold counter.
-    "gold_icon": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "gold-icon.png"
+    "gold_icon": pygame.image.load(BASE_DIR / "assets" / "graphics" / "gold-icon.png"),
+    # 32x64 - a single signpost sprite (not a frame sheet), drawn scaled
+    # up by RUN_TIMER_SCALE in src.ui.HUD's top-right run timer.
+    "sign_timer": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "sign-timer.png"
     ),
 }
 

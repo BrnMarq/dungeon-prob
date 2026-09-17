@@ -97,6 +97,32 @@ class HUD:
             MARGIN, MARGIN, GOLD_ICON_SIZE, GOLD_ICON_SIZE
         )
 
+        # Top-right run timer sign - scaled up once here, same trick as the
+        # ability/gold icons above. Set fresh each frame by PlayState
+        # (see render()'s docstring) rather than duplicated on Player,
+        # since it's run-level state, not player state.
+        self.elapsed_time = 0.0
+        sign_texture = settings.TEXTURES["sign_timer"]
+        sign_size = (
+            sign_texture.get_width() * settings.RUN_TIMER_SCALE,
+            sign_texture.get_height() * settings.RUN_TIMER_SCALE,
+        )
+        self.timer_sign = pygame.transform.scale(sign_texture, sign_size)
+        self.timer_sign_rect = pygame.Rect(
+            settings.VIRTUAL_WIDTH - MARGIN - sign_size[0], 0, *sign_size
+        )
+
+        def _scaled_rect(sprite_rect: pygame.Rect) -> pygame.Rect:
+            return pygame.Rect(
+                self.timer_sign_rect.x + sprite_rect.x * settings.RUN_TIMER_SCALE,
+                self.timer_sign_rect.y + sprite_rect.y * settings.RUN_TIMER_SCALE,
+                sprite_rect.width * settings.RUN_TIMER_SCALE,
+                sprite_rect.height * settings.RUN_TIMER_SCALE,
+            )
+
+        self.timer_bar_rect = _scaled_rect(settings.RUN_TIMER_BAR_RECT)
+        self.timer_label_rect = _scaled_rect(settings.RUN_TIMER_LABEL_RECT)
+
     def render(self, surface: pygame.Surface) -> None:
         theme = get_default_theme()
         player = self.player
@@ -153,6 +179,8 @@ class HUD:
             shadowed=True,
         )
 
+        self._render_run_timer(surface)
+
         pygame.draw.rect(surface, theme.background_color, self.level_badge_rect)
         pygame.draw.rect(
             surface, theme.border_color, self.level_badge_rect, theme.border_width
@@ -187,3 +215,38 @@ class HUD:
                 )
 
             pygame.draw.rect(surface, theme.border_color, slot_rect, theme.border_width)
+
+    def _render_run_timer(self, surface: pygame.Surface) -> None:
+        """Top-of-screen signpost (assets/graphics/sign-timer.png) - the
+        sprite is opaque over its own post, so the fill bar is drawn AFTER
+        it (on top), growing bottom-up as self.elapsed_time (set fresh each
+        frame by src.states.PlayState.update) approaches
+        RUN_TIMER_MAX_DURATION_SECONDS, capping out full after. The mm:ss
+        readout sits in the sign's brown board above the bar.
+        """
+        surface.blit(self.timer_sign, self.timer_sign_rect)
+
+        progress = min(
+            1.0, self.elapsed_time / settings.RUN_TIMER_MAX_DURATION_SECONDS
+        )
+        fill_height = round(self.timer_bar_rect.height * progress)
+        if fill_height > 0:
+            fill_rect = pygame.Rect(
+                self.timer_bar_rect.x,
+                self.timer_bar_rect.bottom - fill_height,
+                self.timer_bar_rect.width,
+                fill_height,
+            )
+            pygame.draw.rect(surface, settings.RUN_TIMER_BAR_COLOR, fill_rect)
+
+        minutes, seconds = divmod(int(self.elapsed_time), 60)
+        render_text(
+            surface,
+            f"{minutes:02d}:{seconds:02d}",
+            self.font,
+            self.timer_label_rect.centerx,
+            self.timer_label_rect.centery,
+            settings.RUN_TIMER_TEXT_COLOR,
+            center=True,
+            shadowed=True,
+        )

@@ -104,6 +104,7 @@ class PlayState(BaseState):
         self.level.difficulty_multiplier = 1.0 + settings.DIFFICULTY_MULTIPLIER_STEP * (
             self.elapsed_time // settings.DIFFICULTY_INTERVAL_SECONDS
         )
+        self.hud.elapsed_time = self.elapsed_time
 
         self.spawn_timer -= dt
         if self.spawn_timer <= 0:
