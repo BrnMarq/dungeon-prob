@@ -1,16 +1,18 @@
 """
-A stat-boosting item pickup (assets/graphics/items.png - see
-src.items.definitions.ITEMS for frame indices). Duck-typed the same way
+A stat-boosting item pickup (assets/graphics/white-items.png and
+red-items.png - see src.items.definitions.ITEMS for texture id/frame
+index). Duck-typed the same way
 as src.entities.ThrownSword/DamageNumber (update/render/is_dead, plus
 get_collision_rect) so src.map.Level's entities list needs no
 special-casing. Touching the player applies its stat via
 Player.collect_item and removes itself - no VFX/SFX, no respawn.
 
 Idles with the same sine-tween bob as ThrownSword's floating swords
-(base_y + sin(elapsed * speed) * amplitude), and renders a white
-silhouette outline a pixel outside the sprite's own edges each frame -
-on top of (not instead of) the white outline already baked into the
-art - so it reads as a glow even against similarly-colored backgrounds.
+(base_y + sin(elapsed * speed) * amplitude), and renders a silhouette
+outline (settings.ITEM_OUTLINE_COLORS, keyed by texture id) a pixel
+outside the sprite's own edges each frame - on top of (not instead of)
+the white outline already baked into the art - so it reads as a glow
+even against similarly-colored backgrounds.
 """
 
 from typing import Any, TypeVar
@@ -26,7 +28,6 @@ _OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 
 class Pickup:
-    TEXTURE_ID = "items"
     WIDTH = 16
     HEIGHT = 16
 
@@ -46,6 +47,7 @@ class Pickup:
         self.player = player
         self.level = level
         self.is_dead = False
+        self.texture_id = ITEMS[item_id]["texture_id"]
         self.frame_index = ITEMS[item_id]["frame_index"]
 
         self.base_y = y
@@ -66,16 +68,17 @@ class Pickup:
         ) * settings.ITEM_FLOAT_AMPLITUDE
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
-        texture = settings.TEXTURES[self.TEXTURE_ID]
-        frame = settings.FRAMES[self.TEXTURE_ID][self.frame_index]
+        texture = settings.TEXTURES[self.texture_id]
+        frame = settings.FRAMES[self.texture_id][self.frame_index]
         image = pygame.Surface((frame.width, frame.height), pygame.SRCALPHA)
         image.fill((0, 0, 0, 0))
         image.blit(texture, (0, 0), frame)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
 
+        outline_color = settings.ITEM_OUTLINE_COLORS[self.texture_id]
         outline = pygame.mask.from_surface(image).to_surface(
-            setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0)
+            setcolor=outline_color, unsetcolor=(0, 0, 0, 0)
         )
         for dx, dy in _OUTLINE_OFFSETS:
             surface.blit(outline, dest.move(dx, dy))

@@ -97,9 +97,9 @@ PLAYER_THROW_COOLDOWN = 4
 # frame for the bulk of the duration, then plays it backward as the ability
 # ends. Hits everything within PLAYER_RAGE_RADIUS of the player's center
 # PLAYER_RAGE_HITS times, evenly spaced across PLAYER_RAGE_DURATION.
-PLAYER_RAGE_DURATION = 2.0
+PLAYER_RAGE_DURATION = 1.0
 PLAYER_RAGE_RADIUS = 64
-PLAYER_RAGE_HITS = 8
+PLAYER_RAGE_HITS = 4
 PLAYER_RAGE_HIT_INTERVAL = PLAYER_RAGE_DURATION / PLAYER_RAGE_HITS
 PLAYER_RAGE_DAMAGE = 10
 PLAYER_RAGE_COOLDOWN = 8
@@ -204,12 +204,24 @@ ITEM_DODGE_CHANCE_BONUS = 0.05  # Cat's spirit - dodge chance, per stack
 ITEM_DODGE_CHANCE_CAP = 0.75  # Cap so cat's spirit stacks can't reach 100% dodge
 ITEM_COOLDOWN_REDUCTION_FACTOR = 0.9  # Loadstone - cooldown multiplier, per stack
 ITEM_COOLDOWN_REDUCTION_FLOOR = 0.2  # Floor so loadstone stacks can't zero out cooldowns
+ITEM_BLOOD_THIRST_COOLDOWN_REDUCTION = 0.25  # Blood thirst - flat cooldown timer cut, per stack, per landed crit
+ITEM_SAMURAI_PROC_CHANCE = 0.05  # Samurai sword - chance of a rage-style AOE burst on any landed hit, per stack
+ITEM_SAMURAI_PROC_CHANCE_CAP = 0.5  # Cap so samurai sword stacks can't make every hit burst
+ITEM_JIMBO_DAMAGE_MULTIPLIER = 4.0  # Jimbo - flat damage multiplier while owned (does not stack further)
+ITEM_SOUL_BOX_BONUS_PER_KILL = 1  # Soul box - flat base damage gained per kill, per stack
 
 # Pickup idle bob (src.items.Pickup) - same sine-tween trick as
 # ThrownSword's floating swords, just its own constants since the icons
 # are half the size (16x16 vs 32x32) and may want independent tuning.
 ITEM_FLOAT_AMPLITUDE = 3
 ITEM_FLOAT_SPEED = 4.5
+
+# Pickup outline glow color (src.items.Pickup.render), keyed by texture
+# id - white for the common items, red for the rarer red-items.png set.
+ITEM_OUTLINE_COLORS = {
+    "items": pygame.Color(255, 255, 255),
+    "red_items": pygame.Color(220, 30, 30),
+}
 
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
@@ -254,6 +266,13 @@ TEXTURES = {
     "items": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "white-items.png"
     ),
+    # 64x16 - 4 distinct 16x16 item icons, same white-silhouette-with-
+    # outline treatment as "items" but the rarer/stronger pickups. Frame
+    # indices 0-3, in src.items.definitions.ITEMS order: blood thirst,
+    # samurai sword, jimbo, soul box.
+    "red_items": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "red-items.png"
+    ),
 }
 
 # Register your frames, for instance:
@@ -269,6 +288,7 @@ FRAMES = {
     "marze_abilities": frames.generate_frames(TEXTURES["marze_abilities"], 32, 32),
     "dark_sword": frames.generate_frames(TEXTURES["dark_sword"], 32, 32),
     "items": frames.generate_frames(TEXTURES["items"], 16, 16),
+    "red_items": frames.generate_frames(TEXTURES["red_items"], 16, 16),
 }
 
 # Register your sound from the sounds folder, for instance:

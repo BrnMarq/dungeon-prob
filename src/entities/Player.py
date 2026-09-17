@@ -1,6 +1,7 @@
 from collections import Counter
 from typing import Optional, Tuple, TypeVar
 
+import math
 import random
 
 import pygame
@@ -30,14 +31,18 @@ from src.entities.player_states import (
     ThrowState,
 )
 from src.items.definitions import (
+    ITEM_BLOOD_THIRST,
     ITEM_CANE,
     ITEM_CATS_SPIRIT,
     ITEM_DAGGERS,
     ITEM_HEART,
     ITEM_HUNTERS_HAT,
+    ITEM_JIMBO,
     ITEM_KNIFE,
     ITEM_LOADSTONE,
+    ITEM_SAMURAI_SWORD,
     ITEM_SHIELD,
+    ITEM_SOUL_BOX,
 )
 
 
@@ -113,6 +118,7 @@ class Player(Entity):
         self.rage_cooldown_timer = 0.0
         self.invincible_timer = 0.0
         self.item_stacks: Counter = Counter()
+        self.bonus_damage_from_kills = 0.0
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind("move_left", press=MOVE_LEFT, release=STOP_MOVE_LEFT)
@@ -148,8 +154,9 @@ class Player(Entity):
         count and, for the heart only, applies its effect immediately
         (max_hp/hp are plain fields, not derived, so there's nothing to
         recompute on demand the way speed/get_damage/attack_duration
-        below are). The other seven items have no state beyond the stack
-        count itself.
+        below are). The other eleven items have no state beyond the stack
+        count itself at pickup time (the soul box's running kill bonus
+        only grows later, via register_kill).
         """
         self.item_stacks[item_id] += 1
         if item_id == ITEM_HEART:
@@ -168,14 +175,21 @@ class Player(Entity):
         )
 
     def get_damage(self, base: float) -> int:
-        """base scaled by the bloody knife's stacks, then rolled against
-        the hunter's hat's crit chance for a flat damage multiplier -
-        called by AttackState/RageState with their own damage constant,
-        and by ThrowState when spawning a ThrownSword.
+        """base scaled by the bloody knife's stacks, plus the soul box's
+        running kill bonus, then rolled against the hunter's hat's crit
+        chance for a flat damage multiplier (also shaving cooldowns via
+        the blood thirst on a crit), and finally jimbo's flat multiplier
+        if owned at all. Called by AttackState/RageState with their own
+        damage constant, by ThrowState when spawning a ThrownSword, and
+        by maybe_trigger_samurai_burst for its own burst damage.
         """
         damage = base * (1 + settings.ITEM_DAMAGE_BONUS * self.item_stacks[ITEM_KNIFE])
+        damage += self.bonus_damage_from_kills
         if random.random() < self.crit_chance:
             damage *= settings.ITEM_CRIT_DAMAGE_MULTIPLIER
+            self._reduce_cooldowns_on_crit()
+        if self.item_stacks[ITEM_JIMBO] > 0:
+            damage *= settings.ITEM_JIMBO_DAMAGE_MULTIPLIER
         return round(damage)
 
     @property
@@ -186,6 +200,66 @@ class Player(Entity):
         return min(
             1.0, settings.ITEM_CRIT_CHANCE_BONUS * self.item_stacks[ITEM_HUNTERS_HAT]
         )
+
+    def _reduce_cooldowns_on_crit(self) -> None:
+        """Blood thirst's stacks - called by get_damage whenever its crit
+        roll succeeds, shaving time off every cooldown currently counting
+        down (never below 0). Fires on the roll itself, not on an actual
+        on-target connect - get_damage is only ever called to resolve a
+        real attack/throw/rage action, never speculatively.
+        """
+        reduction = (
+            settings.ITEM_BLOOD_THIRST_COOLDOWN_REDUCTION
+            * self.item_stacks[ITEM_BLOOD_THIRST]
+        )
+        if reduction <= 0:
+            return
+        self.dash_cooldown_timer = max(0.0, self.dash_cooldown_timer - reduction)
+        self.throw_cooldown_timer = max(0.0, self.throw_cooldown_timer - reduction)
+        self.rage_cooldown_timer = max(0.0, self.rage_cooldown_timer - reduction)
+
+    def register_kill(self) -> None:
+        """Called by an enemy's take_damage once its hp drops to 0 (see
+        src.entities.SmallDemon.take_damage) - the soul box's stacks
+        convert each kill into a permanent flat damage bonus, added by
+        get_damage. A no-op at 0 stacks, so kills before picking it up
+        (and kills entirely without it) contribute nothing.
+        """
+        self.bonus_damage_from_kills += (
+            settings.ITEM_SOUL_BOX_BONUS_PER_KILL * self.item_stacks[ITEM_SOUL_BOX]
+        )
+
+    def maybe_trigger_samurai_burst(self) -> None:
+        """Samurai sword's stacks - called after any landed hit (melee,
+        thrown sword, or rage, including the burst's own trigger sites -
+        see AttackState._land_hit/RageState._land_hit/ThrownSword) to
+        roll a rare chance of an extra rage-style AOE burst centered on
+        the player. Applies its damage directly to each target in range
+        rather than going through another landed-hit call site, so a hit
+        landed by the burst itself can never roll another burst.
+        """
+        chance = min(
+            settings.ITEM_SAMURAI_PROC_CHANCE_CAP,
+            settings.ITEM_SAMURAI_PROC_CHANCE * self.item_stacks[ITEM_SAMURAI_SWORD],
+        )
+        if chance <= 0 or random.random() >= chance:
+            return
+
+        center_x = self.x + self.width / 2
+        center_y = self.y + self.height / 2
+        for other in self.level.entities:
+            if other is self or not hasattr(other, "take_damage"):
+                continue
+            if not hasattr(other, "get_collision_rect"):
+                continue
+
+            rect = other.get_collision_rect()
+            distance = math.hypot(
+                center_x - (rect.x + rect.width / 2),
+                center_y - (rect.y + rect.height / 2),
+            )
+            if distance <= settings.PLAYER_RAGE_RADIUS:
+                other.take_damage(self.get_damage(settings.PLAYER_RAGE_DAMAGE))
 
     @property
     def attack_duration(self) -> float:

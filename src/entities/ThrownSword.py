@@ -141,6 +141,7 @@ class ThrownSword:
 
             other.take_damage(self.damage)
             self._hit_entities.add(id(other))
+            self.player.maybe_trigger_samurai_burst()
 
     def _land(self) -> None:
         self.floating = True
@@ -195,7 +196,8 @@ class ThrownSword:
             dx = rect.centerx - center_x
             dy = rect.centery - center_y
             if dx * dx + dy * dy <= radius_squared:
-                other.take_damage(settings.SWORD_EXPLOSION_DAMAGE)
+                other.take_damage(self.player.get_damage(settings.SWORD_EXPLOSION_DAMAGE))
+                self.player.maybe_trigger_samurai_burst()
 
         self.player.dash_cooldown_timer = 0.0
 

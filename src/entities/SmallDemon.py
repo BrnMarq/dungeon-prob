@@ -74,8 +74,8 @@ class SmallDemon(Entity):
     def take_damage(self, amount: int) -> None:
         """Reacts to incoming damage - see src.entities.player_states.
         AttackState._land_hit. Guarded by hp<=0 so a demon already dying
-        doesn't restart HurtState/spawn extra damage numbers if something
-        hits it again mid-death-animation.
+        doesn't restart HurtState/spawn extra damage numbers - or register
+        an extra kill - if something hits it again mid-death-animation.
         """
         if self.hp <= 0:
             return
@@ -84,7 +84,13 @@ class SmallDemon(Entity):
         self.level.entities.append(
             DamageNumber(self.x + self.width / 2, self.y, amount)
         )
-        self.change_state("dead" if self.hp <= 0 else "hurt")
+
+        if self.hp <= 0:
+            self.change_state("dead")
+            if self.target is not None and hasattr(self.target, "register_kill"):
+                self.target.register_kill()
+        else:
+            self.change_state("hurt")
 
     def melee_range_rect(self) -> pygame.Rect:
         """The world-space rect FollowState checks to trigger an attack and

@@ -45,6 +45,7 @@ class AttackState(BaseEntityState):
                 continue
 
             other.take_damage(self.entity.get_damage(settings.PLAYER_ATTACK_DAMAGE))
+            self.entity.maybe_trigger_samurai_burst()
 
     def update(self, dt: float) -> None:
         # Dropped, not buffered - a dash/jump/another attack pressed while

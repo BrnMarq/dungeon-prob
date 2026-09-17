@@ -51,6 +51,7 @@ class RageState(BaseEntityState):
                 continue
 
             other.take_damage(entity.get_damage(settings.PLAYER_RAGE_DAMAGE))
+            entity.maybe_trigger_samurai_burst()
 
     def update(self, dt: float) -> None:
         # Dropped, not buffered - see AttackState.update's identical guard.
