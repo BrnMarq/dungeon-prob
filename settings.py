@@ -326,10 +326,10 @@ TEXTURES = {
     "tall_trees": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "tall-trees.png"
     ),
-    # 160x192 - 4x3 grid of 40x64 cells (src.entities.HitEffect). Only
-    # the first row (frame indices 0-3) is used, a 4-frame slash flash
-    # played over an enemy hit by the rage/samurai sword AOE bursts; the
-    # other two rows are unused for now.
+    # 160x192 - 4x4 grid of 40x48 cells, 4 separate slash animations
+    # (src.entities.HitEffect). Only the first row (frame indices 0-3) is
+    # used, played over an enemy hit by the rage/samurai sword AOE
+    # bursts; the other three rows are unused for now.
     "blade_effects": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "blade-effects.png"
     ),
@@ -359,7 +359,7 @@ FRAMES = {
     "red_items": frames.generate_frames(TEXTURES["red_items"], 16, 16),
     "huge_trees": frames.generate_frames(TEXTURES["huge_trees"], 800, 500),
     "tall_trees": frames.generate_frames(TEXTURES["tall_trees"], 600, 624),
-    "blade_effects": frames.generate_frames(TEXTURES["blade_effects"], 40, 32),
+    "blade_effects": frames.generate_frames(TEXTURES["blade_effects"], 40, 48),
 }
 
 # src.entities.HitEffect - seconds each of its 4 frames holds for (a
