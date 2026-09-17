@@ -96,6 +96,36 @@ background, and a combat VFX pass - built on top of 0.1.0's foundation.
   target hit by the rage or samurai-sword AOE bursts specifically (not
   regular melee/throw hits) - `HitEffect.spawn_on(level, target)`.
 - `README.md`: a first pass at the game manual/setup guide.
+- Gold and XP on kill, leveling, and named difficulty tiers:
+  - `Player` now tracks `gold` (`grant_gold`) and levels up via `grant_xp`:
+    each level-up multiplies `xp_to_next_level` by
+    `PLAYER_LEVEL_XP_MULTIPLIER` (1.5, so it gets progressively harder),
+    adds `PLAYER_LEVEL_UP_HP_BONUS` to `max_hp` (current `hp` is not
+    topped up), and adds `PLAYER_LEVEL_UP_DAMAGE_BONUS` to a new
+    `bonus_damage_from_level`, folded into `get_damage` alongside the soul
+    box's kill bonus.
+  - `SmallDemon.take_damage` grants `DEMON_BASE_GOLD_REWARD`/
+    `DEMON_BASE_XP_REWARD` on a kill, scaled by the current difficulty
+    tier's `reward_multiplier`.
+  - `settings.DIFFICULTY_TIERS`: four named tiers (Easy/Medium/Hard/Very
+    Hard, starting at 0:00/3:00/6:00/10:00 of elapsed play time).
+    `PlayState.update` picks the last tier whose `start_time` has passed
+    and holds there once past the final one. Each tier's `spawn_interval`/
+    `max_active` drive `PlayState._spawn_demon` (replacing the old flat
+    `DEMON_SPAWN_INTERVAL`/`DEMON_MAX_ACTIVE` constants), and
+    `enemy_hp_multiplier`/`enemy_damage_multiplier` scale a newly spawned
+    `SmallDemon`'s `max_hp`/`attack_damage` at spawn time only - demons
+    already on the field don't retroactively get stronger. Each tier also
+    carries a `color` (calm green → yellow → orange → intense red) used
+    by the HUD below.
+  - `src/ui/HUD.py`: an animated gold counter (`assets/graphics/gold-icon.png`,
+    a 4-frame coin spin) top-left next to the gold total, and a top-right
+    run timer sign (`assets/graphics/sign-timer.png`) - a fill bar grows
+    bottom-up inside the sign's post as elapsed play time approaches
+    `RUN_TIMER_MAX_DURATION_SECONDS` (20 min, capping out full after), the
+    `mm:ss` readout sits in the sign's brown board above the bar, and the
+    current difficulty tier's name floats above the sign in that tier's
+    `color`.
 
 ### Changed
 

@@ -37,10 +37,11 @@ class PlayState(BaseState):
         self.camera.x, self.camera.y = self.player.x, self.player.y
         self.camera.update(0)
 
-        # 0 rather than DEMON_SPAWN_INTERVAL so the first demon spawns on
+        # 0 rather than a spawn_interval wait so the first demon spawns on
         # the very first update() tick instead of after a cold wait.
         self.spawn_timer = 0.0
         self.elapsed_time = 0.0
+        self.current_tier = settings.DIFFICULTY_TIERS[0]
 
         self.hud = HUD(self.player)
         self._spawn_test_items()
@@ -49,7 +50,7 @@ class PlayState(BaseState):
         active_demons = sum(
             1 for entity in self.level.entities if isinstance(entity, SmallDemon)
         )
-        if active_demons >= settings.DEMON_MAX_ACTIVE:
+        if active_demons >= self.current_tier["max_active"]:
             return
 
         tile_width = self.level.tilemap.tile_width
@@ -69,7 +70,14 @@ class PlayState(BaseState):
 
         spawn_x = spawn_col * tile_width
         spawn_y = row * self.level.tilemap.tile_height - SmallDemon.HEIGHT
-        demon = SmallDemon(spawn_x, spawn_y, self.level, target=self.player)
+        demon = SmallDemon(
+            spawn_x,
+            spawn_y,
+            self.level,
+            target=self.player,
+            hp_multiplier=self.current_tier["enemy_hp_multiplier"],
+            damage_multiplier=self.current_tier["enemy_damage_multiplier"],
+        )
         self.level.entities.append(demon)
 
     def _spawn_test_items(self) -> None:
@@ -101,14 +109,20 @@ class PlayState(BaseState):
         self.level.update(dt)
 
         self.elapsed_time += dt
-        self.level.difficulty_multiplier = 1.0 + settings.DIFFICULTY_MULTIPLIER_STEP * (
-            self.elapsed_time // settings.DIFFICULTY_INTERVAL_SECONDS
-        )
+        # DIFFICULTY_TIERS is sorted ascending by start_time - the last one
+        # reached is current, held indefinitely once past the final tier's
+        # start_time.
+        for tier in settings.DIFFICULTY_TIERS:
+            if tier["start_time"] <= self.elapsed_time:
+                self.current_tier = tier
+        self.level.difficulty_tier = self.current_tier
         self.hud.elapsed_time = self.elapsed_time
+        self.hud.difficulty_tier_name = self.current_tier["name"]
+        self.hud.difficulty_tier_color = self.current_tier["color"]
 
         self.spawn_timer -= dt
         if self.spawn_timer <= 0:
-            self.spawn_timer = settings.DEMON_SPAWN_INTERVAL
+            self.spawn_timer = self.current_tier["spawn_interval"]
             self._spawn_demon()
 
     def render(self, surface: pygame.Surface) -> None:

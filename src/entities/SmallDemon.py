@@ -40,6 +40,8 @@ class SmallDemon(Entity):
         y: float,
         level: TypeVar("Level"),
         target: Optional[Any] = None,
+        hp_multiplier: float = 1.0,
+        damage_multiplier: float = 1.0,
     ) -> None:
         super().__init__(
             x,
@@ -66,8 +68,12 @@ class SmallDemon(Entity):
             },
         )
         self.sprite_offset = (42, 37)
-        self.max_hp = settings.DEMON_MAX_HP
+        # Scaled by the current difficulty tier at spawn time (see
+        # src.states.PlayState._spawn_demon) - an already-spawned demon
+        # doesn't retroactively get stronger if the tier changes under it.
+        self.max_hp = round(settings.DEMON_MAX_HP * hp_multiplier)
         self.hp = self.max_hp
+        self.attack_damage = round(settings.DEMON_ATTACK_DAMAGE * damage_multiplier)
         self.target = target
         self.change_state("spawn")
 
@@ -90,7 +96,7 @@ class SmallDemon(Entity):
             if self.target is not None and hasattr(self.target, "register_kill"):
                 self.target.register_kill()
             if self.target is not None and hasattr(self.target, "grant_gold"):
-                multiplier = self.level.difficulty_multiplier
+                multiplier = self.level.difficulty_tier["reward_multiplier"]
                 self.target.grant_gold(
                     round(settings.DEMON_BASE_GOLD_REWARD * multiplier)
                 )

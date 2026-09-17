@@ -39,7 +39,7 @@ class AttackState(BaseEntityState):
         if not self.entity.melee_range_rect().colliderect(target.get_collision_rect()):
             return  # target moved out of range during the wind-up - miss
 
-        target.take_damage(settings.DEMON_ATTACK_DAMAGE)
+        target.take_damage(self.entity.attack_damage)
 
     def update(self, dt: float) -> None:
         self.entity.vx = 0

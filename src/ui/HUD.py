@@ -102,6 +102,8 @@ class HUD:
         # (see render()'s docstring) rather than duplicated on Player,
         # since it's run-level state, not player state.
         self.elapsed_time = 0.0
+        self.difficulty_tier_name = settings.DIFFICULTY_TIERS[0]["name"]
+        self.difficulty_tier_color = settings.DIFFICULTY_TIERS[0]["color"]
         sign_texture = settings.TEXTURES["sign_timer"]
         sign_size = (
             sign_texture.get_width() * settings.RUN_TIMER_SCALE,
@@ -111,6 +113,10 @@ class HUD:
         self.timer_sign_rect = pygame.Rect(
             settings.VIRTUAL_WIDTH - MARGIN - sign_size[0], 0, *sign_size
         )
+        # The difficulty tier text renders above the sign at this fixed y,
+        # overlapping the sign's own top rows - mostly transparent there
+        # (only the hook's two thin support stubs), so it reads cleanly.
+        self.tier_text_y = MARGIN
 
         def _scaled_rect(sprite_rect: pygame.Rect) -> pygame.Rect:
             return pygame.Rect(
@@ -237,7 +243,7 @@ class HUD:
                 self.timer_bar_rect.width,
                 fill_height,
             )
-            pygame.draw.rect(surface, settings.RUN_TIMER_BAR_COLOR, fill_rect)
+            pygame.draw.rect(surface, self.difficulty_tier_color, fill_rect)
 
         minutes, seconds = divmod(int(self.elapsed_time), 60)
         render_text(
@@ -247,6 +253,17 @@ class HUD:
             self.timer_label_rect.centerx,
             self.timer_label_rect.centery,
             settings.RUN_TIMER_TEXT_COLOR,
+            center=True,
+            shadowed=True,
+        )
+
+        render_text(
+            surface,
+            self.difficulty_tier_name.upper(),
+            self.font,
+            self.timer_sign_rect.centerx,
+            self.tier_text_y + self.font.get_height() // 2,
+            self.difficulty_tier_color,
             center=True,
             shadowed=True,
         )

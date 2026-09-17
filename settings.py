@@ -149,17 +149,20 @@ DEMON_ATTACK_RANGE = 24
 # How long the demon stands idle after its attack animation finishes before
 # resuming the chase - on top of the attack animation's own runtime.
 DEMON_ATTACK_COOLDOWN = 0.6
+# Base attack damage/max_hp before the current difficulty tier's
+# enemy_damage_multiplier/enemy_hp_multiplier scale a newly spawned
+# SmallDemon (see DIFFICULTY_TIERS below and SmallDemon.__init__).
 DEMON_ATTACK_DAMAGE = 10
 DEMON_MAX_HP = 40
 
-# Periodic random spawning - src.states.PlayState._spawn_demon. Every
-# DEMON_SPAWN_INTERVAL seconds, one demon spawns on solid ground somewhere
-# between MIN and MAX tile columns away from the player (randomly to
-# either side), as long as fewer than DEMON_MAX_ACTIVE are already alive.
-DEMON_SPAWN_INTERVAL = 4.0
+# Periodic random spawning - src.states.PlayState._spawn_demon. One demon
+# spawns on solid ground somewhere between MIN and MAX tile columns away
+# from the player (randomly to either side) every spawn_interval seconds,
+# as long as fewer than max_active are already alive - both now driven by
+# the current difficulty tier (see DIFFICULTY_TIERS below) rather than
+# flat constants.
 DEMON_SPAWN_MIN_DISTANCE_TILES = 4
 DEMON_SPAWN_MAX_DISTANCE_TILES = 10
-DEMON_MAX_ACTIVE = 5
 
 # Overhead enemy health bar (src/ui/health_bar.py, drawn from
 # src.map.Level.render for any entity with SHOW_HEALTH_BAR = True) - only
@@ -194,17 +197,63 @@ PLAYER_LEVEL_UP_HP_BONUS = 10
 PLAYER_LEVEL_UP_DAMAGE_BONUS = 2
 
 # Base gold/XP granted per demon kill (src.entities.SmallDemon.take_damage),
-# scaled by the current difficulty multiplier (see DIFFICULTY_* below).
+# scaled by the current difficulty tier's reward_multiplier (see
+# DIFFICULTY_TIERS below).
 DEMON_BASE_GOLD_REWARD = 5
 DEMON_BASE_XP_REWARD = 10
 
-# Minimal time-based difficulty scaling (src.states.PlayState.update) -
-# every DIFFICULTY_INTERVAL_SECONDS of play, the multiplier used to scale
-# kill rewards steps up by DIFFICULTY_MULTIPLIER_STEP. Doesn't touch enemy
-# spawn rate or stats yet - just reward scaling until a fuller difficulty
-# system is designed.
-DIFFICULTY_INTERVAL_SECONDS = 60.0
-DIFFICULTY_MULTIPLIER_STEP = 0.1
+# Named difficulty tiers (src.states.PlayState.update picks the last tier
+# whose start_time <= elapsed play time, and holds there once past the
+# final tier's start_time) - src.ui.HUD displays the current tier's name
+# (and tints it plus the run timer's fill bar with "color") next to the
+# run timer sign. Each tier's spawn_interval/max_active replace settings.
+# DEMON_SPAWN_INTERVAL/DEMON_MAX_ACTIVE for PlayState._spawn_demon, and
+# enemy_hp_multiplier/enemy_damage_multiplier scale a newly spawned
+# SmallDemon's max_hp/attack_damage - existing demons don't retroactively
+# get stronger when a tier changes. "color" ramps calm green -> yellow ->
+# orange -> intense red, reading progressively scarier as it climbs.
+DIFFICULTY_TIERS = [
+    {
+        "name": "Easy",
+        "start_time": 0.0,
+        "reward_multiplier": 1.0,
+        "enemy_hp_multiplier": 1.0,
+        "enemy_damage_multiplier": 1.0,
+        "spawn_interval": 4.0,
+        "max_active": 5,
+        "color": pygame.Color(90, 200, 90),
+    },
+    {
+        "name": "Medium",
+        "start_time": 180.0,
+        "reward_multiplier": 1.3,
+        "enemy_hp_multiplier": 1.3,
+        "enemy_damage_multiplier": 1.2,
+        "spawn_interval": 3.0,
+        "max_active": 7,
+        "color": pygame.Color(230, 200, 90),
+    },
+    {
+        "name": "Hard",
+        "start_time": 360.0,
+        "reward_multiplier": 1.6,
+        "enemy_hp_multiplier": 1.6,
+        "enemy_damage_multiplier": 1.4,
+        "spawn_interval": 2.5,
+        "max_active": 9,
+        "color": pygame.Color(230, 130, 40),
+    },
+    {
+        "name": "Very Hard",
+        "start_time": 600.0,
+        "reward_multiplier": 2.0,
+        "enemy_hp_multiplier": 2.0,
+        "enemy_damage_multiplier": 1.6,
+        "spawn_interval": 2.0,
+        "max_active": 12,
+        "color": pygame.Color(220, 30, 30),
+    },
+]
 
 # Run timer sign (src.ui.HUD, assets/graphics/sign-timer.png) - the bar
 # fills once over this many seconds of elapsed play time and stays full
@@ -220,7 +269,9 @@ RUN_TIMER_BAR_RECT = pygame.Rect(23, 20, 2, 38)
 # RUN_TIMER_BAR_RECT above) - where the mm:ss readout is centered.
 RUN_TIMER_LABEL_RECT = pygame.Rect(4, 8, 22, 8)
 RUN_TIMER_SCALE = 2
-RUN_TIMER_BAR_COLOR = pygame.Color(230, 200, 90)
+# The bar fill and tier-name text are tinted by the current tier's own
+# "color" (DIFFICULTY_TIERS above) instead of a fixed color - only the
+# mm:ss readout stays neutral.
 RUN_TIMER_TEXT_COLOR = pygame.Color(255, 255, 255)
 
 # Stat-boosting item pickups (src.items.Pickup / src.items.definitions) -

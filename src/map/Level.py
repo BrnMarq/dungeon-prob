@@ -23,9 +23,10 @@ class Level:
         self.background = ParallaxBackground(
             self.get_rect().width, settings.VIRTUAL_WIDTH
         )
-        # Scales kill rewards (see src.entities.SmallDemon.take_damage) -
-        # kept updated by src.states.PlayState.update as play time elapses.
-        self.difficulty_multiplier = 1.0
+        # Current named difficulty tier (settings.DIFFICULTY_TIERS) - scales
+        # kill rewards (see src.entities.SmallDemon.take_damage), kept
+        # updated by src.states.PlayState.update as play time elapses.
+        self.difficulty_tier = settings.DIFFICULTY_TIERS[0]
 
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(0, 0, self.tilemap.pixel_width, self.tilemap.pixel_height)
