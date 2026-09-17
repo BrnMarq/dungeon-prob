@@ -62,6 +62,11 @@ class RageCommand(Command):
         receiver.rage_requested = True
 
 
+class InteractCommand(Command):
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.interact_requested = True
+
+
 MOVE_LEFT = MoveLeftCommand()
 MOVE_RIGHT = MoveRightCommand()
 STOP_MOVE_LEFT = StopMoveLeftCommand()
@@ -71,3 +76,4 @@ DASH = DashCommand()
 ATTACK = AttackCommand()
 THROW = ThrowCommand()
 RAGE = RageCommand()
+INTERACT = InteractCommand()

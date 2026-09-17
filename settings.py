@@ -28,6 +28,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "jump")
 input_handler.InputHandler.set_keyboard_action(
     input_handler.KEY_h, "toggle_debug_hitboxes"
 )
+# Chest purchase (src.entities.Chest) - press near a closed chest to buy.
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_f, "interact")
 
 # Ability bar - Q/W/E/R map straight to HUD slots 1-4 (src.ui.HUD). Q and E
 # are wired to real abilities below; W/R are reserved action ids with
@@ -428,6 +430,9 @@ TEXTURES = {
     "sign_timer": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "sign-timer.png"
     ),
+    # 96x16 - six 16x16 frames (src.entities.Chest): frame 0 closed, the
+    # remaining 5 the opening animation, ending on the fully-open frame.
+    "chest": pygame.image.load(BASE_DIR / "assets" / "graphics" / "chest.png"),
 }
 
 # The single pixel in background.png is the parallax background's sky
@@ -456,10 +461,31 @@ FRAMES = {
     "tall_trees": frames.generate_frames(TEXTURES["tall_trees"], 600, 624),
     "blade_effects": frames.generate_frames(TEXTURES["blade_effects"], 40, 48),
     "gold_icon": frames.generate_frames(TEXTURES["gold_icon"], 32, 32),
+    "chest": frames.generate_frames(TEXTURES["chest"], 16, 16),
 }
 
 # src.ui.HUD - seconds each gold_icon coin-spin frame holds for.
 GOLD_ICON_FRAME_INTERVAL = 0.15
+
+# Chests (src.entities.Chest, assets/graphics/chest.png) - spawned by
+# PlayState.enter from the map's "chests" object layer (a set of possible
+# spawn points; not every point gets a chest each run). Costs gold to
+# open (press "interact" while touching one), scaled by the current
+# difficulty tier's reward_multiplier so chests get pricier alongside
+# richer kill rewards. A 90/10 roll picks a random item from ITEMS'
+# "items" (white) vs "red_items" (rare) pool as the payout.
+CHEST_BASE_COST = 20
+CHEST_SPAWN_MIN = 6
+CHEST_SPAWN_MAX = 8
+CHEST_RED_ITEM_CHANCE = 0.10
+# 5 opening frames (indices 1-5) played at this interval before settling
+# on the last one permanently.
+CHEST_OPEN_FRAME_INTERVAL = 0.08
+# How long after the lid finishes opening before the rolled item actually
+# spawns as a Pickup - lets the player run off and keep playing, then
+# decide later whether it's worth coming back for, instead of it
+# appearing (and likely auto-collecting) the instant the chest opens.
+CHEST_ITEM_REVEAL_DELAY = 0.3
 
 # src.entities.HitEffect - seconds each of its 4 frames holds for (a
 # quick flash - the whole animation plays out in 4x this, well under the

@@ -13,6 +13,7 @@ import settings
 from src.commands import (
     ATTACK,
     DASH,
+    INTERACT,
     JUMP,
     MOVE_LEFT,
     MOVE_RIGHT,
@@ -118,6 +119,7 @@ class Player(Entity):
         self.throw_cooldown_timer = 0.0
         self.rage_requested = False
         self.rage_cooldown_timer = 0.0
+        self.interact_requested = False
         self.invincible_timer = 0.0
         self.item_stacks: Counter = Counter()
         self.bonus_damage_from_kills = 0.0
@@ -133,6 +135,7 @@ class Player(Entity):
         self.command_bindings.bind("attack", press=ATTACK)
         self.command_bindings.bind("ability_2", press=THROW)
         self.command_bindings.bind("ability_4", press=RAGE)
+        self.command_bindings.bind("interact", press=INTERACT)
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         self.command_bindings.dispatch(self, input_id, input_data)

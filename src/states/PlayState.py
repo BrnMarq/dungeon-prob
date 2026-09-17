@@ -7,10 +7,9 @@ from gale.camera import Camera
 from gale.input_handler import InputData
 
 import settings
+from src.entities.Chest import Chest
 from src.entities.Player import Player
 from src.entities.SmallDemon import SmallDemon
-from src.items.definitions import ITEMS
-from src.items.Pickup import Pickup
 from src.map.Level import Level
 from src.states.BaseState import BaseState
 from src.ui.HUD import HUD
@@ -44,7 +43,7 @@ class PlayState(BaseState):
         self.current_tier = settings.DIFFICULTY_TIERS[0]
 
         self.hud = HUD(self.player)
-        self._spawn_test_items()
+        self._spawn_chests()
 
     def _spawn_demon(self) -> None:
         active_demons = sum(
@@ -80,23 +79,20 @@ class PlayState(BaseState):
         )
         self.level.entities.append(demon)
 
-    def _spawn_test_items(self) -> None:
-        """One of each item (src.items.definitions.ITEMS), standing on
-        ground at the end of the map, one tile apart - for manually
-        testing pickups. Not a real drop table; see the design spec's
-        Non-goals.
+    def _spawn_chests(self) -> None:
+        """One Chest per randomly-chosen point in the map's "chests"
+        object layer (assets/maps/forest.json) - a set of possible spawn
+        points, not every point gets a chest each run.
         """
-        tile_width = self.level.tilemap.tile_width
-        last_col = self.level.tilemap.cols - 1
-        for offset, item_id in enumerate(ITEMS.keys()):
-            col = last_col - offset
-            row = self.level.ground_row(col)
-            if row is None:
-                continue
-
-            x = col * tile_width
-            y = row * self.level.tilemap.tile_height - Pickup.HEIGHT
-            self.level.entities.append(Pickup(x, y, item_id, self.player, self.level))
+        spawn_points = self.level.tilemap.object_layers.get("chests", [])
+        count = min(
+            len(spawn_points),
+            random.randint(settings.CHEST_SPAWN_MIN, settings.CHEST_SPAWN_MAX),
+        )
+        for point in random.sample(spawn_points, count):
+            self.level.entities.append(
+                Chest(point.x, point.y, self.player, self.level)
+            )
 
     def exit(self) -> None:
         pass
@@ -107,6 +103,10 @@ class PlayState(BaseState):
     def update(self, dt: float) -> None:
         self.camera.update(dt)
         self.level.update(dt)
+        # Consumed by at most one Chest.update() above this frame (or by
+        # none, if nothing was in range) - a single press should never
+        # carry over and auto-trigger a chest reached on some later frame.
+        self.player.interact_requested = False
 
         self.elapsed_time += dt
         # DIFFICULTY_TIERS is sorted ascending by start_time - the last one

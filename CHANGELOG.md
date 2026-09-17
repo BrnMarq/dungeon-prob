@@ -126,6 +126,20 @@ background, and a combat VFX pass - built on top of 0.1.0's foundation.
     `mm:ss` readout sits in the sign's brown board above the bar, and the
     current difficulty tier's name floats above the sign in that tier's
     `color`.
+- Gold-cost chests: `src/entities/Chest.py`, spawned by
+  `PlayState._spawn_chests` from `settings.CHEST_SPAWN_MIN`/`MAX` (6-8)
+  randomly-chosen points out of the map's new `"chests"` Tiled object
+  layer (`assets/maps/forest.json`) - a set of possible spawn points, not
+  every point gets a chest each run. Duck-typed like `Pickup`, but static
+  and interact-based rather than touch-based: pressing the new `interact`
+  action (`F`, `src.commands.InteractCommand`, `Player.interact_requested`)
+  while touching a closed chest the player can afford
+  (`settings.CHEST_BASE_COST` scaled by the current difficulty tier's
+  `reward_multiplier`) deducts the gold and calls `Player.collect_item`
+  with a random item - 90% common (`ITEMS` entries with `texture_id`
+  `"items"`), 10% rare (`"red_items"`, `settings.CHEST_RED_ITEM_CHANCE`) -
+  then plays `assets/graphics/chest.png`'s 5-frame opening animation and
+  settles on the open frame permanently.
 
 ### Changed
 
