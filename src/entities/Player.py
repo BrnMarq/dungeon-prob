@@ -109,6 +109,7 @@ class Player(Entity):
         self.hp = self.max_hp
         self.xp = 0
         self.xp_to_next_level = settings.PLAYER_XP_TO_NEXT_LEVEL
+        self.gold = 0
 
         self.dash_requested = False
         self.dash_cooldown_timer = 0.0
@@ -120,6 +121,7 @@ class Player(Entity):
         self.invincible_timer = 0.0
         self.item_stacks: Counter = Counter()
         self.bonus_damage_from_kills = 0.0
+        self.bonus_damage_from_level = 0.0
 
         self.command_bindings = CommandBindings()
         self.command_bindings.bind("move_left", press=MOVE_LEFT, release=STOP_MOVE_LEFT)
@@ -186,6 +188,7 @@ class Player(Entity):
         """
         damage = base * (1 + settings.ITEM_DAMAGE_BONUS * self.item_stacks[ITEM_KNIFE])
         damage += self.bonus_damage_from_kills
+        damage += self.bonus_damage_from_level
         if random.random() < self.crit_chance:
             damage *= settings.ITEM_CRIT_DAMAGE_MULTIPLIER
             self._reduce_cooldowns_on_crit()
@@ -229,6 +232,31 @@ class Player(Entity):
         self.bonus_damage_from_kills += (
             settings.ITEM_SOUL_BOX_BONUS_PER_KILL * self.item_stacks[ITEM_SOUL_BOX]
         )
+
+    def grant_gold(self, amount: int) -> None:
+        """Called on an enemy kill (see src.entities.SmallDemon.take_damage)
+        with settings.DEMON_BASE_GOLD_REWARD scaled by the level's current
+        difficulty multiplier - just a running total for src.ui.HUD to
+        display, no spending yet.
+        """
+        self.gold += amount
+
+    def grant_xp(self, amount: int) -> None:
+        """Called on an enemy kill alongside grant_gold. Levels up as many
+        times as the granted XP covers (each threshold multiplying by
+        PLAYER_LEVEL_XP_MULTIPLIER, so leveling gets progressively harder),
+        applying PLAYER_LEVEL_UP_HP_BONUS/DAMAGE_BONUS per level gained.
+        Current hp is not topped up on level-up, only the max_hp ceiling.
+        """
+        self.xp += amount
+        while self.xp >= self.xp_to_next_level:
+            self.xp -= self.xp_to_next_level
+            self.level_num += 1
+            self.xp_to_next_level = round(
+                self.xp_to_next_level * settings.PLAYER_LEVEL_XP_MULTIPLIER
+            )
+            self.max_hp += settings.PLAYER_LEVEL_UP_HP_BONUS
+            self.bonus_damage_from_level += settings.PLAYER_LEVEL_UP_DAMAGE_BONUS
 
     def maybe_trigger_samurai_burst(self) -> None:
         """Samurai sword's stacks - called after any landed hit (melee,

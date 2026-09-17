@@ -40,6 +40,7 @@ class PlayState(BaseState):
         # 0 rather than DEMON_SPAWN_INTERVAL so the first demon spawns on
         # the very first update() tick instead of after a cold wait.
         self.spawn_timer = 0.0
+        self.elapsed_time = 0.0
 
         self.hud = HUD(self.player)
         self._spawn_test_items()
@@ -98,6 +99,11 @@ class PlayState(BaseState):
     def update(self, dt: float) -> None:
         self.camera.update(dt)
         self.level.update(dt)
+
+        self.elapsed_time += dt
+        self.level.difficulty_multiplier = 1.0 + settings.DIFFICULTY_MULTIPLIER_STEP * (
+            self.elapsed_time // settings.DIFFICULTY_INTERVAL_SECONDS
+        )
 
         self.spawn_timer -= dt
         if self.spawn_timer <= 0:

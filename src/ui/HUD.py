@@ -23,6 +23,9 @@ XP_COLOR = pygame.Color(90, 160, 230)
 COOLDOWN_OVERLAY_COLOR = (40, 40, 40, 170)  # translucent gray
 INVINCIBLE_COLOR = pygame.Color(255, 255, 255)
 INVINCIBLE_TEXT_COLOR = pygame.Color(20, 20, 20)
+GOLD_TEXT_COLOR = pygame.Color(230, 200, 90)
+
+GOLD_ICON_SIZE = 16
 
 
 class HUD:
@@ -80,6 +83,20 @@ class HUD:
         self.cooldown_overlay = pygame.Surface((ICON_SIZE, ICON_SIZE), pygame.SRCALPHA)
         self.cooldown_overlay.fill(COOLDOWN_OVERLAY_COLOR)
 
+        # Top-left gold counter - gold_icon.png's native 32x32 coin-spin
+        # frames, scaled down to GOLD_ICON_SIZE once here rather than per
+        # frame in render() (same trick as the ability icons above).
+        gold_texture = settings.TEXTURES["gold_icon"]
+        self.gold_icons = [
+            pygame.transform.scale(
+                gold_texture.subsurface(frame_rect), (GOLD_ICON_SIZE, GOLD_ICON_SIZE)
+            )
+            for frame_rect in settings.FRAMES["gold_icon"]
+        ]
+        self.gold_icon_rect = pygame.Rect(
+            MARGIN, MARGIN, GOLD_ICON_SIZE, GOLD_ICON_SIZE
+        )
+
     def render(self, surface: pygame.Surface) -> None:
         theme = get_default_theme()
         player = self.player
@@ -118,6 +135,23 @@ class HUD:
             )
 
         self.xp_bar.render(surface)
+
+        # Coin-spin frame picked off the wall clock rather than a stored
+        # timer - HUD has no update() of its own, everything else here is
+        # read fresh from player state the same way.
+        frame_index = int(
+            pygame.time.get_ticks() / 1000 / settings.GOLD_ICON_FRAME_INTERVAL
+        ) % len(self.gold_icons)
+        surface.blit(self.gold_icons[frame_index], self.gold_icon_rect)
+        render_text(
+            surface,
+            str(player.gold),
+            self.font,
+            self.gold_icon_rect.right + MARGIN,
+            self.gold_icon_rect.top + (GOLD_ICON_SIZE - self.font.get_height()) // 2,
+            GOLD_TEXT_COLOR,
+            shadowed=True,
+        )
 
         pygame.draw.rect(surface, theme.background_color, self.level_badge_rect)
         pygame.draw.rect(

@@ -89,6 +89,12 @@ class SmallDemon(Entity):
             self.change_state("dead")
             if self.target is not None and hasattr(self.target, "register_kill"):
                 self.target.register_kill()
+            if self.target is not None and hasattr(self.target, "grant_gold"):
+                multiplier = self.level.difficulty_multiplier
+                self.target.grant_gold(
+                    round(settings.DEMON_BASE_GOLD_REWARD * multiplier)
+                )
+                self.target.grant_xp(round(settings.DEMON_BASE_XP_REWARD * multiplier))
         else:
             self.change_state("hurt")
 

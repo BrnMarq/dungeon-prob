@@ -182,10 +182,29 @@ DEBUG_HITBOXES = False
 DEBUG_HURTBOX_COLOR = (160, 60, 220, 90)  # translucent purple - entity hurtboxes
 DEBUG_HITBOX_COLOR = (220, 40, 40, 90)  # translucent red - attack hit areas
 
-# Used by src.entities.Player / src.ui.HUD. No leveling curve yet - flat
-# XP-to-next-level constant until that's designed.
+# Used by src.entities.Player / src.ui.HUD.
 PLAYER_MAX_HP = 100
 PLAYER_XP_TO_NEXT_LEVEL = 100
+# Each level-up multiplies the next level's XP requirement by this, so
+# leveling gets progressively harder - see Player.grant_xp.
+PLAYER_LEVEL_XP_MULTIPLIER = 1.5
+# Flat base-stat growth applied by Player.grant_xp on every level-up.
+# Current hp is not topped up - only the max_hp ceiling rises.
+PLAYER_LEVEL_UP_HP_BONUS = 10
+PLAYER_LEVEL_UP_DAMAGE_BONUS = 2
+
+# Base gold/XP granted per demon kill (src.entities.SmallDemon.take_damage),
+# scaled by the current difficulty multiplier (see DIFFICULTY_* below).
+DEMON_BASE_GOLD_REWARD = 5
+DEMON_BASE_XP_REWARD = 10
+
+# Minimal time-based difficulty scaling (src.states.PlayState.update) -
+# every DIFFICULTY_INTERVAL_SECONDS of play, the multiplier used to scale
+# kill rewards steps up by DIFFICULTY_MULTIPLIER_STEP. Doesn't touch enemy
+# spawn rate or stats yet - just reward scaling until a fuller difficulty
+# system is designed.
+DIFFICULTY_INTERVAL_SECONDS = 60.0
+DIFFICULTY_MULTIPLIER_STEP = 0.1
 
 # Stat-boosting item pickups (src.items.Pickup / src.items.definitions) -
 # each is stackable (src.entities.Player.item_stacks), applying its bonus
@@ -333,6 +352,11 @@ TEXTURES = {
     "blade_effects": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "blade-effects.png"
     ),
+    # 128x32 - 4 32x32 coin-spin frames, looped by src.ui.HUD next to the
+    # gold counter.
+    "gold_icon": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "gold-icon.png"
+    ),
 }
 
 # The single pixel in background.png is the parallax background's sky
@@ -360,7 +384,11 @@ FRAMES = {
     "huge_trees": frames.generate_frames(TEXTURES["huge_trees"], 800, 500),
     "tall_trees": frames.generate_frames(TEXTURES["tall_trees"], 600, 624),
     "blade_effects": frames.generate_frames(TEXTURES["blade_effects"], 40, 48),
+    "gold_icon": frames.generate_frames(TEXTURES["gold_icon"], 32, 32),
 }
+
+# src.ui.HUD - seconds each gold_icon coin-spin frame holds for.
+GOLD_ICON_FRAME_INTERVAL = 0.15
 
 # src.entities.HitEffect - seconds each of its 4 frames holds for (a
 # quick flash - the whole animation plays out in 4x this, well under the
