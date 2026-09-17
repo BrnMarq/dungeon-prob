@@ -6,6 +6,7 @@ from gale.tilemap import CollisionType, collision_type_at, load_tiled_map
 
 import settings
 from src import debug
+from src.map.Background import ParallaxBackground
 from src.ui.health_bar import render_health_bar
 
 
@@ -19,6 +20,9 @@ class Level:
     def __init__(self, tilemap_path: str) -> None:
         self.tilemap = load_tiled_map(tilemap_path)
         self.entities: List[Any] = []
+        self.background = ParallaxBackground(
+            self.get_rect().width, settings.VIRTUAL_WIDTH
+        )
 
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(0, 0, self.tilemap.pixel_width, self.tilemap.pixel_height)
@@ -41,6 +45,7 @@ class Level:
         self.entities = [entity for entity in self.entities if not entity.is_dead]
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
+        self.background.render(surface, camera)
         self.tilemap.render(surface, camera)
         for entity in self.entities:
             entity.render(surface, camera)

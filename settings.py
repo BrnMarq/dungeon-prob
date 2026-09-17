@@ -203,12 +203,22 @@ ITEM_CRIT_DAMAGE_MULTIPLIER = 2.0  # Hunter's hat - damage multiplier on a crit
 ITEM_DODGE_CHANCE_BONUS = 0.05  # Cat's spirit - dodge chance, per stack
 ITEM_DODGE_CHANCE_CAP = 0.75  # Cap so cat's spirit stacks can't reach 100% dodge
 ITEM_COOLDOWN_REDUCTION_FACTOR = 0.9  # Loadstone - cooldown multiplier, per stack
-ITEM_COOLDOWN_REDUCTION_FLOOR = 0.2  # Floor so loadstone stacks can't zero out cooldowns
-ITEM_BLOOD_THIRST_COOLDOWN_REDUCTION = 0.25  # Blood thirst - flat cooldown timer cut, per stack, per landed crit
+ITEM_COOLDOWN_REDUCTION_FLOOR = (
+    0.2  # Floor so loadstone stacks can't zero out cooldowns
+)
+ITEM_BLOOD_THIRST_COOLDOWN_REDUCTION = (
+    0.25  # Blood thirst - flat cooldown timer cut, per stack, per landed crit
+)
 ITEM_SAMURAI_PROC_CHANCE = 0.05  # Samurai sword - chance of a rage-style AOE burst on any landed hit, per stack
-ITEM_SAMURAI_PROC_CHANCE_CAP = 0.5  # Cap so samurai sword stacks can't make every hit burst
-ITEM_JIMBO_DAMAGE_MULTIPLIER = 4.0  # Jimbo - flat damage multiplier while owned (does not stack further)
-ITEM_SOUL_BOX_BONUS_PER_KILL = 1  # Soul box - flat base damage gained per kill, per stack
+ITEM_SAMURAI_PROC_CHANCE_CAP = (
+    0.5  # Cap so samurai sword stacks can't make every hit burst
+)
+ITEM_JIMBO_DAMAGE_MULTIPLIER = (
+    4.0  # Jimbo - flat damage multiplier while owned (does not stack further)
+)
+ITEM_SOUL_BOX_BONUS_PER_KILL = (
+    1  # Soul box - flat base damage gained per kill, per stack
+)
 
 # Pickup idle bob (src.items.Pickup) - same sine-tween trick as
 # ThrownSword's floating swords, just its own constants since the icons
@@ -222,6 +232,38 @@ ITEM_OUTLINE_COLORS = {
     "items": pygame.Color(255, 255, 255),
     "red_items": pygame.Color(220, 30, 30),
 }
+
+# Parallax background (src.map.Background.ParallaxBackground) - each
+# scrolling layer's factor is the fraction of the camera's own horizontal
+# movement it scrolls by (0 = fixed in place, 1 = moves exactly with the
+# world/tilemap), back to front: the wide forest silhouette barely
+# scrolls, huge-trees a bit more, tall-trees' bare-branch row (its
+# farther row) more still, tall-trees' leafy row (its closer row) the
+# most. huge-trees.png/tall-trees.png's cells are rescaled to a HEIGHT
+# (px, aspect-preserved) and pinned to the top of the screen (an
+# overhead canopy, unlike the bottom-anchored forest silhouette) before
+# being scattered at SPACING intervals (+/- JITTER, in pixels) along the
+# layer, each instance randomly picking one of its layer's frame
+# variants - computed once per Level (Level.__init__ builds one
+# ParallaxBackground) rather than tiled, since these sheets are already
+# wider than this map's own scroll range.
+BACKGROUND_FOREST_SCROLL_FACTOR = 0.1
+BACKGROUND_HUGE_TREES_SCROLL_FACTOR = 0.3
+BACKGROUND_HUGE_TREES_HEIGHT = 300
+BACKGROUND_HUGE_TREES_SPACING = 260
+BACKGROUND_HUGE_TREES_JITTER = 40
+# tall-trees.png's bare-branch row (src.map.Background's
+# _TALL_TREES_BACK_ROW_INDICES) - the farther of its two rows.
+BACKGROUND_TALL_TREES_BACK_SCROLL_FACTOR = 0.4
+BACKGROUND_TALL_TREES_BACK_HEIGHT = 330
+BACKGROUND_TALL_TREES_BACK_SPACING = 220
+BACKGROUND_TALL_TREES_BACK_JITTER = 30
+# tall-trees.png's leafy row (_TALL_TREES_FRONT_ROW_INDICES) - the
+# nearer of its two rows, and the frontmost background layer overall.
+BACKGROUND_TALL_TREES_SCROLL_FACTOR = 0.5
+BACKGROUND_TALL_TREES_HEIGHT = 360
+BACKGROUND_TALL_TREES_SPACING = 200
+BACKGROUND_TALL_TREES_JITTER = 30
 
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
@@ -263,17 +305,43 @@ TEXTURES = {
     # outline baked into the art. Frame indices 0-7, in
     # src.items.definitions.ITEMS order: cane, heart, knife, shield,
     # daggers, hunter's hat, cat's spirit, loadstone.
-    "items": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "white-items.png"
-    ),
+    "items": pygame.image.load(BASE_DIR / "assets" / "graphics" / "white-items.png"),
     # 64x16 - 4 distinct 16x16 item icons, same white-silhouette-with-
     # outline treatment as "items" but the rarer/stronger pickups. Frame
     # indices 0-3, in src.items.definitions.ITEMS order: blood thirst,
     # samurai sword, jimbo, soul box.
-    "red_items": pygame.image.load(
-        BASE_DIR / "assets" / "graphics" / "red-items.png"
+    "red_items": pygame.image.load(BASE_DIR / "assets" / "graphics" / "red-items.png"),
+    # Parallax background layers (src.map.Background.ParallaxBackground),
+    # back to front. background-forest.png (1440x800) is a single wide
+    # treeline silhouette, blitted whole. huge-trees.png (2400x1000, 3x2
+    # grid of 800x500 cells) and tall-trees.png (1200x1248, 2x2 grid of
+    # 600x624 cells) are each scattered as individual tree instances -
+    # see FRAMES below for their cell slicing.
+    "background_forest": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "background-forest.png"
+    ),
+    "huge_trees": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "huge-trees.png"
+    ),
+    "tall_trees": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "tall-trees.png"
+    ),
+    # 160x192 - 4x3 grid of 40x64 cells (src.entities.HitEffect). Only
+    # the first row (frame indices 0-3) is used, a 4-frame slash flash
+    # played over an enemy hit by the rage/samurai sword AOE bursts; the
+    # other two rows are unused for now.
+    "blade_effects": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "blade-effects.png"
     ),
 }
+
+# The single pixel in background.png is the parallax background's sky
+# fill color (src.map.Background.ParallaxBackground) - sampled once here
+# rather than registered as a texture, since it's never blitted as an
+# image.
+BACKGROUND_SKY_COLOR = pygame.image.load(
+    BASE_DIR / "assets" / "graphics" / "background.png"
+).get_at((0, 0))
 
 # Register your frames, for instance:
 # FRAMES = {
@@ -289,7 +357,15 @@ FRAMES = {
     "dark_sword": frames.generate_frames(TEXTURES["dark_sword"], 32, 32),
     "items": frames.generate_frames(TEXTURES["items"], 16, 16),
     "red_items": frames.generate_frames(TEXTURES["red_items"], 16, 16),
+    "huge_trees": frames.generate_frames(TEXTURES["huge_trees"], 800, 500),
+    "tall_trees": frames.generate_frames(TEXTURES["tall_trees"], 600, 624),
+    "blade_effects": frames.generate_frames(TEXTURES["blade_effects"], 40, 32),
 }
+
+# src.entities.HitEffect - seconds each of its 4 frames holds for (a
+# quick flash - the whole animation plays out in 4x this, well under the
+# rage/samurai burst's own timing).
+HIT_EFFECT_FRAME_INTERVAL = 0.05
 
 # Register your sound from the sounds folder, for instance:
 # SOUNDS = {

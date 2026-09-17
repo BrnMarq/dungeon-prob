@@ -20,11 +20,14 @@ class PlayState(BaseState):
     def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
         self.level = Level(settings.TILEMAPS['forest'])
 
-        # Row 16 is the forest map's ground surface (tile_height 16px);
-        # resting exactly on it, not a few pixels in, so move_and_collide's
+        # Looked up rather than hardcoded, so edits to the map's ground
+        # height don't leave the player spawning inside/below it. Resting
+        # exactly on the surface, not a few pixels in, so move_and_collide's
         # one-way platform check (which needs the entity already at/above
         # the surface) picks it up on the very first frame.
-        spawn_y = 16 * self.level.tilemap.tile_height - Player.HEIGHT
+        spawn_col = 16 // self.level.tilemap.tile_width
+        spawn_row = self.level.ground_row(spawn_col)
+        spawn_y = spawn_row * self.level.tilemap.tile_height - Player.HEIGHT
         self.player = Player(16, spawn_y, self.level)
         self.level.entities.append(self.player)
 

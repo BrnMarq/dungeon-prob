@@ -23,6 +23,7 @@ from src.commands import (
 )
 from src.entities.DamageNumber import DamageNumber
 from src.entities.Entity import Entity
+from src.entities.HitEffect import HitEffect
 from src.entities.player_states import (
     AttackState,
     DashState,
@@ -234,9 +235,10 @@ class Player(Entity):
         thrown sword, or rage, including the burst's own trigger sites -
         see AttackState._land_hit/RageState._land_hit/ThrownSword) to
         roll a rare chance of an extra rage-style AOE burst centered on
-        the player. Applies its damage directly to each target in range
-        rather than going through another landed-hit call site, so a hit
-        landed by the burst itself can never roll another burst.
+        the player, spawning a src.entities.HitEffect slash flash on each
+        target it hits. Applies its damage directly to each target in
+        range rather than going through another landed-hit call site, so
+        a hit landed by the burst itself can never roll another burst.
         """
         chance = min(
             settings.ITEM_SAMURAI_PROC_CHANCE_CAP,
@@ -260,6 +262,7 @@ class Player(Entity):
             )
             if distance <= settings.PLAYER_RAGE_RADIUS:
                 other.take_damage(self.get_damage(settings.PLAYER_RAGE_DAMAGE))
+                HitEffect.spawn_on(self.level, other)
 
     @property
     def attack_duration(self) -> float:

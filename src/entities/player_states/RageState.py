@@ -1,6 +1,7 @@
 import math
 
 import settings
+from src.entities.HitEffect import HitEffect
 from src.entities.states.BaseEntityState import BaseEntityState
 
 
@@ -11,7 +12,8 @@ class RageState(BaseEntityState):
     "rage_reverse" (the same frames backward) so it winds back down right as
     the ability ends. Grants entity.invincible_timer for the full duration
     and lands PLAYER_RAGE_HITS hits, evenly spaced, against everything within
-    PLAYER_RAGE_RADIUS of the player's center.
+    PLAYER_RAGE_RADIUS of the player's center - each landed hit also spawns
+    a src.entities.HitEffect slash flash on the target.
     """
 
     def enter(self) -> None:
@@ -51,6 +53,7 @@ class RageState(BaseEntityState):
                 continue
 
             other.take_damage(entity.get_damage(settings.PLAYER_RAGE_DAMAGE))
+            HitEffect.spawn_on(entity.level, other)
             entity.maybe_trigger_samurai_burst()
 
     def update(self, dt: float) -> None:

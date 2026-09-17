@@ -6,6 +6,120 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/) - while
 the major version stays `0`, breaking changes can land in any release.
 
+## [Unreleased] - 2026-09-17
+
+Two more abilities, a full 12-item stackable pickup system, a parallax
+background, and a combat VFX pass - built on top of 0.1.0's foundation.
+
+### Added
+
+- Thrown sword ability (`W` / HUD slot 2, `src/entities/player_states/ThrowState.py`
+  + `src/entities/ThrownSword.py`, `assets/graphics/dark-sword.png`): plays
+  `Marze.png`'s 3-frame throw wind-up, then spawns a projectile that flies
+  `settings.SWORD_TRAVEL_DISTANCE` (matching the dash's own speed/duration),
+  damaging each enemy it touches at most once while cycling through
+  thrown/midair/near_max_travel animations by distance fraction. Lands and
+  floats in place (sine-tweened y, looping animation) until the player
+  touches it, detonating it - a `gale.particle_system` burst plus
+  `SWORD_EXPLOSION_RADIUS` area damage, and refunding the player's dash
+  cooldown.
+- Rage ability (`R` / HUD slot 4, `src/entities/player_states/RageState.py`):
+  an invincible radius burst - plays `Marze.png`'s new row-5 3-frame
+  wind-up, holds on the last frame for most of `PLAYER_RAGE_DURATION`, then
+  plays it backward as the ability ends. Grants full-duration invincibility
+  and lands `PLAYER_RAGE_HITS` hits, evenly spaced, against everything
+  within `PLAYER_RAGE_RADIUS` of the player's center.
+- Stackable item pickup system: `src/items/Pickup.py` (a `DamageNumber`-style
+  duck-typed entity - float-bob idle animation, glowing outline, applies its
+  effect via `Player.collect_item` on touch and removes itself) plus
+  `src/items/definitions.py`'s `ITEMS` registry mapping each item id to a
+  texture id/sprite frame. `Player.item_stacks` (a `Counter`) tracks how many
+  of each item has been picked up; `PlayState._spawn_test_items` spawns one
+  of every registered item at the end of the map for manual testing.
+  Twelve items, each read live off `item_stacks` by the stat it modifies:
+  - **Walking cane** - `Player.speed` scaled by `ITEM_SPEED_BONUS`, additive.
+  - **Frozen heart** - `ITEM_HP_BONUS` added to `max_hp`/`hp` immediately on
+    pickup (the only item with an instant rather than derived effect).
+  - **Bloody knife** - `Player.get_damage` scaled by `ITEM_DAMAGE_BONUS`,
+    additive; read by melee/throw/rage and the sword's explosion.
+  - **Aegis shield** - `Player.take_damage` scales incoming damage by
+    `ITEM_RESISTANCE_FACTOR`, compounding (diminishing returns, never 0).
+  - **Short daggers** - `Player.attack_duration` scales by
+    `ITEM_ATTACK_SPEED_FACTOR`, compounding, floored at
+    `ITEM_ATTACK_DURATION_FLOOR` so it can't zero out the swing.
+  - **Hunter's hat** - `Player.crit_chance`, linear (`ITEM_CRIT_CHANCE_BONUS`
+    per stack, capped at 100%); a successful roll in `get_damage` multiplies
+    damage by `ITEM_CRIT_DAMAGE_MULTIPLIER`.
+  - **Cat's spirit** - `Player.dodge_chance`, linear
+    (`ITEM_DODGE_CHANCE_BONUS`, capped at `ITEM_DODGE_CHANCE_CAP`); a
+    successful roll in `take_damage` skips the hit entirely and spawns a
+    white "Dodged!" popup instead of a damage number.
+  - **Loadstone** - `Player.cooldown_multiplier`, compounding
+    (`ITEM_COOLDOWN_REDUCTION_FACTOR`, floored at
+    `ITEM_COOLDOWN_REDUCTION_FLOOR`), applied wherever `PlayingState` starts
+    the dash/throw/rage cooldown timers.
+  - **Blood thirst** - every crit rolled in `get_damage` also shaves
+    `ITEM_BLOOD_THIRST_COOLDOWN_REDUCTION * stacks` off all three cooldown
+    timers currently counting down (`Player._reduce_cooldowns_on_crit`).
+  - **Samurai sword** - `Player.maybe_trigger_samurai_burst`, called after
+    every landed hit (melee, thrown sword, rage - including the burst's own
+    hits, applied directly so it can't chain into itself): a rare per-stack
+    chance (`ITEM_SAMURAI_PROC_CHANCE`, capped at
+    `ITEM_SAMURAI_PROC_CHANCE_CAP`) of an extra rage-style AOE burst
+    centered on the player.
+  - **Jimbo** - flat, non-stacking `ITEM_JIMBO_DAMAGE_MULTIPLIER` (x4) on
+    all damage while owned.
+  - **Soul box** - `SmallDemon.take_damage` now calls `target.register_kill()`
+    once an enemy's hp hits 0; `Player.register_kill` adds
+    `ITEM_SOUL_BOX_BONUS_PER_KILL * stacks` to a running
+    `bonus_damage_from_kills`, added into every `get_damage` call from then on.
+  - Sprites: `assets/graphics/white-items.png` (the first 8 items, white
+    silhouettes) and `assets/graphics/red-items.png` (the 4 rarer ones),
+    each rendered with an outline glow colored per `settings.ITEM_OUTLINE_COLORS`
+    (white / red).
+- `src/entities/DamageNumber.py` generalized from a plain damage `amount`
+  to arbitrary `text` plus an optional `color` (defaults to the existing
+  purple), so it could double as the "Dodged!" popup.
+- Parallax background (`src/map/Background.py`'s `ParallaxBackground`,
+  owned by every `Level` and rendered first each frame): a solid sky fill
+  (`background.png`'s single pixel) plus four scrolling layers, back to
+  front - `background-forest.png`'s wide treeline silhouette (bottom-anchored,
+  barely scrolls), `huge-trees.png`'s canopy, and `tall-trees.png`'s
+  bare-branch row then leafy row (both top-pinned, scaled up, scrolling
+  progressively faster). Tree instances for the sheet-based layers are
+  scattered at random positions/variants once per `Level`, not tiled, since
+  the sheets stay wider than a level's own camera scroll range. Every
+  scroll factor/height/spacing constant lives in `settings.py`
+  (`BACKGROUND_*`).
+- Hit VFX: `src/entities/HitEffect.py`, a one-shot 4-frame slash animation
+  (`assets/graphics/blade-effects.png`'s first row) spawned centered on any
+  target hit by the rage or samurai-sword AOE bursts specifically (not
+  regular melee/throw hits) - `HitEffect.spawn_on(level, target)`.
+- `README.md`: a first pass at the game manual/setup guide.
+
+### Changed
+
+- Rage rebalanced (`PLAYER_RAGE_DURATION` 2.0s → 1.0s, `PLAYER_RAGE_HITS`
+  8 → 4, same 0.25s hit interval either way) to compensate for the samurai
+  sword's ability to proc off rage's own hits.
+- `Player.attack_hitbox_rect`/melee hitbox now dips
+  `PLAYER_ATTACK_INSET` back inside Marze's own hurtbox instead of sitting
+  completely flush against it, reining in how far forward the swing's
+  hitbox reaches.
+- `ThrownSword`'s damage is now computed once via `Player.get_damage` at
+  throw time (so it benefits from the knife/soul box/crit/Jimbo bonuses)
+  instead of always dealing the flat `PLAYER_THROW_DAMAGE`; its landed
+  explosion (`SWORD_EXPLOSION_DAMAGE`) now routes through `get_damage` too.
+- `assets/graphics/items.png` (the original flat-color 5-icon sheet) removed,
+  replaced by `white-items.png`/`red-items.png` above.
+
+### Fixed
+
+- `PlayState`'s player spawn no longer hardcodes tile row 16 as the ground
+  surface - it now looks up the actual ground row via `Level.ground_row`
+  (the same way item/demon spawns already did), so editing the map's
+  ground height no longer leaves the player spawning below/inside it.
+
 ## [0.1.0] - 2026-09-13
 
 First playable build: a controllable Marze with jump/dash/melee, one
