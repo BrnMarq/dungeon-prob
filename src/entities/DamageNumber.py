@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union
 
 import pygame
 
@@ -18,12 +18,21 @@ class DamageNumber:
     conforms to the same duck-typed interface src.map.Level's entities list
     expects (update/render/is_dead), so it drops into Level.entities like
     any other entity with no special-casing in Level's update/render loop.
+    text is usually a damage amount (int), but src.entities.Player.take_damage
+    also uses it for the cat's spirit's "Dodged!" popup.
     """
 
-    def __init__(self, x: float, y: float, amount: int) -> None:
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        text: Union[int, str],
+        color: pygame.Color = settings.DAMAGE_NUMBER_COLOR,
+    ) -> None:
         self.x = x
         self.y = y
-        self.amount = amount
+        self.text = text
+        self.color = color
         self.age = 0.0
         self.is_dead = False
 
@@ -37,11 +46,11 @@ class DamageNumber:
         dest = camera.apply(pygame.Rect(self.x, self.y, 0, 0))
         render_text(
             surface,
-            str(self.amount),
+            str(self.text),
             _font,
             dest.x,
             dest.y,
-            settings.DAMAGE_NUMBER_COLOR,
+            self.color,
             center=True,
             shadowed=True,
         )

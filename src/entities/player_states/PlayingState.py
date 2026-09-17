@@ -23,7 +23,9 @@ class PlayingState(BaseEntityState):
         if self.entity.throw_requested:
             self.entity.throw_requested = False
             if self.entity.throw_cooldown_timer <= 0:
-                self.entity.throw_cooldown_timer = settings.PLAYER_THROW_COOLDOWN
+                self.entity.throw_cooldown_timer = (
+                    settings.PLAYER_THROW_COOLDOWN * self.entity.cooldown_multiplier
+                )
                 self.entity.change_state("throw")
                 return
 
@@ -31,14 +33,18 @@ class PlayingState(BaseEntityState):
             self.entity.dash_requested = False
             if self.entity.dash_cooldown_timer <= 0:
                 direction = -1 if self.entity.flipped else 1
-                self.entity.dash_cooldown_timer = settings.PLAYER_DASH_COOLDOWN
+                self.entity.dash_cooldown_timer = (
+                    settings.PLAYER_DASH_COOLDOWN * self.entity.cooldown_multiplier
+                )
                 self.entity.change_state("dash", direction)
                 return
 
         if self.entity.rage_requested:
             self.entity.rage_requested = False
             if self.entity.rage_cooldown_timer <= 0:
-                self.entity.rage_cooldown_timer = settings.PLAYER_RAGE_COOLDOWN
+                self.entity.rage_cooldown_timer = (
+                    settings.PLAYER_RAGE_COOLDOWN * self.entity.cooldown_multiplier
+                )
                 self.entity.change_state("rage")
                 return
 

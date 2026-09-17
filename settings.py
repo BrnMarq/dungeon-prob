@@ -173,6 +173,7 @@ ENEMY_HEALTH_BAR_BORDER_COLOR = (10, 10, 10)
 
 # src.entities.DamageNumber - floating combat-text color for damage taken.
 DAMAGE_NUMBER_COLOR = pygame.Color(190, 80, 230)
+DODGE_TEXT_COLOR = pygame.Color(255, 255, 255)  # "Dodged!" popup color
 
 # Debug overlay (src/debug.py, drawn from src.map.Level.render) - translucent
 # hurtbox/hitbox rectangles for tuning collision/attack-range sizes visually.
@@ -197,6 +198,12 @@ ITEM_DAMAGE_BONUS = 0.10  # Bloody knife - fraction of base damage, per stack
 ITEM_RESISTANCE_FACTOR = 0.92  # Aegis shield - incoming damage multiplier, per stack
 ITEM_ATTACK_SPEED_FACTOR = 0.9  # Short daggers - attack duration multiplier, per stack
 ITEM_ATTACK_DURATION_FLOOR = 0.05  # Floor so daggers stacks can't zero out the swing
+ITEM_CRIT_CHANCE_BONUS = 0.05  # Hunter's hat - crit chance, per stack
+ITEM_CRIT_DAMAGE_MULTIPLIER = 2.0  # Hunter's hat - damage multiplier on a crit
+ITEM_DODGE_CHANCE_BONUS = 0.05  # Cat's spirit - dodge chance, per stack
+ITEM_DODGE_CHANCE_CAP = 0.75  # Cap so cat's spirit stacks can't reach 100% dodge
+ITEM_COOLDOWN_REDUCTION_FACTOR = 0.9  # Loadstone - cooldown multiplier, per stack
+ITEM_COOLDOWN_REDUCTION_FLOOR = 0.2  # Floor so loadstone stacks can't zero out cooldowns
 
 # Pickup idle bob (src.items.Pickup) - same sine-tween trick as
 # ThrownSword's floating swords, just its own constants since the icons
@@ -239,11 +246,14 @@ TEXTURES = {
     "dark_sword": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "dark-sword.png"
     ),
-    # 80x16 - 5 distinct 16x16 item icons (stat-boosting pickups,
-    # src.items.Pickup), each with a white outline baked into the art.
-    # Frame indices 0-4, in src.items.definitions.ITEMS order: cane,
-    # heart, knife, shield, daggers.
-    "items": pygame.image.load(BASE_DIR / "assets" / "graphics" / "items.png"),
+    # 128x16 - 8 distinct 16x16 item icons (stat-boosting pickups,
+    # src.items.Pickup), rendered as white silhouettes, each with a white
+    # outline baked into the art. Frame indices 0-7, in
+    # src.items.definitions.ITEMS order: cane, heart, knife, shield,
+    # daggers, hunter's hat, cat's spirit, loadstone.
+    "items": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "white-items.png"
+    ),
 }
 
 # Register your frames, for instance:

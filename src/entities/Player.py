@@ -1,6 +1,8 @@
 from collections import Counter
 from typing import Optional, Tuple, TypeVar
 
+import random
+
 import pygame
 
 from gale.command import CommandBindings
@@ -29,9 +31,12 @@ from src.entities.player_states import (
 )
 from src.items.definitions import (
     ITEM_CANE,
+    ITEM_CATS_SPIRIT,
     ITEM_DAGGERS,
     ITEM_HEART,
+    ITEM_HUNTERS_HAT,
     ITEM_KNIFE,
+    ITEM_LOADSTONE,
     ITEM_SHIELD,
 )
 
@@ -143,7 +148,7 @@ class Player(Entity):
         count and, for the heart only, applies its effect immediately
         (max_hp/hp are plain fields, not derived, so there's nothing to
         recompute on demand the way speed/get_damage/attack_duration
-        below are). The other four items have no state beyond the stack
+        below are). The other seven items have no state beyond the stack
         count itself.
         """
         self.item_stacks[item_id] += 1
@@ -163,12 +168,23 @@ class Player(Entity):
         )
 
     def get_damage(self, base: float) -> int:
-        """base scaled by the bloody knife's stacks - called by
-        AttackState/RageState with their own damage constant, and by
-        ThrowState when spawning a ThrownSword.
+        """base scaled by the bloody knife's stacks, then rolled against
+        the hunter's hat's crit chance for a flat damage multiplier -
+        called by AttackState/RageState with their own damage constant,
+        and by ThrowState when spawning a ThrownSword.
         """
-        return round(
-            base * (1 + settings.ITEM_DAMAGE_BONUS * self.item_stacks[ITEM_KNIFE])
+        damage = base * (1 + settings.ITEM_DAMAGE_BONUS * self.item_stacks[ITEM_KNIFE])
+        if random.random() < self.crit_chance:
+            damage *= settings.ITEM_CRIT_DAMAGE_MULTIPLIER
+        return round(damage)
+
+    @property
+    def crit_chance(self) -> float:
+        """Hunter's hat's stacks, linear and capped at 100% - read by
+        get_damage.
+        """
+        return min(
+            1.0, settings.ITEM_CRIT_CHANCE_BONUS * self.item_stacks[ITEM_HUNTERS_HAT]
         )
 
     @property
@@ -185,13 +201,48 @@ class Player(Entity):
             * settings.ITEM_ATTACK_SPEED_FACTOR ** self.item_stacks[ITEM_DAGGERS],
         )
 
+    @property
+    def dodge_chance(self) -> float:
+        """Cat's spirit's stacks, linear and capped below 100% - read by
+        take_damage.
+        """
+        return min(
+            settings.ITEM_DODGE_CHANCE_CAP,
+            settings.ITEM_DODGE_CHANCE_BONUS * self.item_stacks[ITEM_CATS_SPIRIT],
+        )
+
+    @property
+    def cooldown_multiplier(self) -> float:
+        """Loadstone's stacks (compounding, floored so it can never hit
+        0) - read by src.entities.player_states.PlayingState when
+        setting the dash/throw/rage cooldown timers.
+        """
+        return max(
+            settings.ITEM_COOLDOWN_REDUCTION_FLOOR,
+            settings.ITEM_COOLDOWN_REDUCTION_FACTOR ** self.item_stacks[ITEM_LOADSTONE],
+        )
+
     def take_damage(self, amount: int) -> None:
         """Reacts to incoming damage (see src.entities.enemy_states.
         AttackState._land_hit) - a no-op entirely while dashing's
         invincibility window is active (self.invincible_timer, started by
-        src.entities.player_states.DashState).
+        src.entities.player_states.DashState), or when the cat's spirit's
+        dodge chance rolls a dodge (no HP loss, "Dodged!" popup instead of
+        a DamageNumber - same early-return shape as the invincibility
+        check).
         """
         if self.is_invincible:
+            return
+
+        if random.random() < self.dodge_chance:
+            self.level.entities.append(
+                DamageNumber(
+                    self.x + self.width / 2,
+                    self.y,
+                    "Dodged!",
+                    settings.DODGE_TEXT_COLOR,
+                )
+            )
             return
 
         amount = round(
