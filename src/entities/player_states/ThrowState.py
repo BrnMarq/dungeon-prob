@@ -45,6 +45,7 @@ class ThrowState(BaseEntityState):
             entity.level,
         )
         entity.level.entities.append(sword)
+        settings.SOUNDS["shadow_throw"].play()
 
     def update(self, dt: float) -> None:
         # Dropped, not buffered - see AttackState.update's identical guard.

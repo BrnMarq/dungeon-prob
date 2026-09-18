@@ -632,6 +632,16 @@ SOUNDS = {
     "shadow_throw_hit": pygame.mixer.Sound(
         BASE_DIR / "assets" / "sounds" / "shadow-throw-hit.wav"
     ),
+    "shadow_throw": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "shadow-throw.wav"
+    ),
+    "shadow_sword_pickup": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "shadow-sword-pickup.wav"
+    ),
+    # src.entities.enemy_states.AttackState.enter - the demon's own swing.
+    "demon_attack": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "demon-attack.wav"
+    ),
 }
 
 # Background music, one track per state (src.audio.play_music) - paths

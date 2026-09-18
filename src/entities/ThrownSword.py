@@ -163,6 +163,7 @@ class ThrownSword:
         )
 
         if self.get_collision_rect().colliderect(self.player.get_collision_rect()):
+            settings.SOUNDS["shadow_sword_pickup"].play()
             self._explode()
 
     def _advance_frame(self, frames: List[int], interval: float, dt: float) -> None:

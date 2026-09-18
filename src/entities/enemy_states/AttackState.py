@@ -31,6 +31,7 @@ class AttackState(BaseEntityState):
         animation = self.entity.animations["attack"]
         self._attack_duration = animation.size * animation.interval
         self._hit_delay = self.HIT_FRAME_INDEX * animation.interval
+        settings.SOUNDS["demon_attack"].play()
 
     def _land_hit(self) -> None:
         if not self.entity.can_melee_target():
