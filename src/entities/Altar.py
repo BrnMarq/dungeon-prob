@@ -33,6 +33,7 @@ import pygame
 
 import settings
 from src import render
+from src.audio import play_music
 from src.ui import interact_prompt
 
 _ACTIVATE_FRAME_COUNT = 3  # altars.png frames 1-3, played after frame 0 (dormant)
@@ -117,6 +118,7 @@ class Altar:
             self.level.altar_phase = "activating"
             self._activate_anim_timer = 0.0
             self.player.hp = self.player.max_hp
+            play_music("altar_activation")
             return
 
         if phase == "ended":

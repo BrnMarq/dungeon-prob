@@ -615,7 +615,13 @@ HIT_EFFECT_FRAME_INTERVAL = 0.05
 # SOUNDS = {
 #     'my_sound': pygame.mixer.Sound(BASE_DIR / "assets"  / "sounds" / "my_sound.wav"),
 # }
-SOUNDS = {}
+SOUNDS = {
+    # src.items.Pickup.update - played once (not looped) on every item
+    # collected.
+    "item_pickup": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "item-pickup.wav"
+    ),
+}
 
 # Background music, one track per state (src.audio.play_music) - paths
 # rather than preloaded pygame.mixer.Sound objects (unlike SOUNDS above)
@@ -627,6 +633,10 @@ MUSIC = {
     "playing": BASE_DIR / "assets" / "sounds" / "playing.mp3",
     "game_over": BASE_DIR / "assets" / "sounds" / "game-over.mp3",
     "victory": BASE_DIR / "assets" / "sounds" / "victory.mp3",
+    # src.entities.Altar - swapped in the moment the altar starts
+    # activating, back to "playing" once its buff ends (src.states.
+    # PlayState.update).
+    "altar_activation": BASE_DIR / "assets" / "sounds" / "altar-activation.mp3",
 }
 
 # Register your fonts from the fonts folder, for instance:
