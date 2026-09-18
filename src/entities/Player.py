@@ -16,12 +16,16 @@ from src.commands import (
     DASH,
     INTERACT,
     JUMP,
+    MOVE_DOWN,
     MOVE_LEFT,
     MOVE_RIGHT,
+    MOVE_UP,
     RAGE,
     RESET,
+    STOP_MOVE_DOWN,
     STOP_MOVE_LEFT,
     STOP_MOVE_RIGHT,
+    STOP_MOVE_UP,
     THROW,
 )
 from src.entities.DamageNumber import DamageNumber
@@ -29,6 +33,7 @@ from src.entities.Entity import Entity
 from src.entities.HitEffect import HitEffect
 from src.entities.player_states import (
     AttackState,
+    ClimbState,
     DashState,
     PlayingState,
     RageState,
@@ -70,6 +75,7 @@ class Player(Entity):
                 "attack": lambda sm: AttackState(self, sm),
                 "throw": lambda sm: ThrowState(self, sm),
                 "rage": lambda sm: RageState(self, sm),
+                "climb": lambda sm: ClimbState(self, sm),
             },
             animation_defs={
                 "idle": {"frames": [0, 1, 2, 3], "interval": 0.2},
@@ -136,6 +142,10 @@ class Player(Entity):
             "move_right", press=MOVE_RIGHT, release=STOP_MOVE_RIGHT
         )
         self.command_bindings.bind("jump", press=JUMP)
+        self.command_bindings.bind("move_up", press=MOVE_UP, release=STOP_MOVE_UP)
+        self.command_bindings.bind(
+            "move_down", press=MOVE_DOWN, release=STOP_MOVE_DOWN
+        )
         self.command_bindings.bind("dash", press=DASH)
         self.command_bindings.bind("attack", press=ATTACK)
         self.command_bindings.bind("ability_2", press=THROW)
