@@ -7,6 +7,7 @@ from gale.text import render_text
 
 import settings
 from src import render
+from src.audio import play_music
 from src.items.definitions import ITEMS
 from src.states.BaseState import BaseState
 
@@ -78,6 +79,8 @@ def _build_item_icon(texture_id: str, frame_index: int) -> pygame.Surface:
 
 class VictoryState(BaseState):
     def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
+        play_music("victory")
+
         self.player: TypeVar("Player") = kwargs.get("player")
         self.elapsed_time: float = kwargs.get("elapsed_time", 0.0)
 
