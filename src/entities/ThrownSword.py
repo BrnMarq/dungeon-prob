@@ -6,6 +6,7 @@ import pygame
 from gale.particle_system import ParticleSystem
 
 import settings
+from src import render
 
 
 class ThrownSword:
@@ -221,14 +222,7 @@ class ThrownSword:
             self.particles.render(surface)
             return
 
-        texture = settings.TEXTURES[self.TEXTURE_ID]
-        frame = settings.FRAMES[self.TEXTURE_ID][self.frame_index]
-        image = pygame.Surface((frame.width, frame.height), pygame.SRCALPHA)
-        image.fill((0, 0, 0, 0))
-        image.blit(texture, (0, 0), frame)
-
-        if self.flipped:
-            image = pygame.transform.flip(image, True, False)
+        image = render.sprite(self.TEXTURE_ID, self.frame_index, self.flipped)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
-        surface.blit(image, dest)
+        render.blit(surface, image, dest)

@@ -31,6 +31,7 @@ from typing import Any, TypeVar
 import pygame
 
 import settings
+from src import render
 
 _ACTIVATE_FRAME_COUNT = 3  # altars.png frames 1-3, played after frame 0 (dormant)
 _OUTLINE_COLOR = pygame.Color(255, 255, 255)
@@ -123,19 +124,13 @@ class Altar:
                 self.level.altar_choice = "reset"
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
-        texture = settings.TEXTURES["altars"]
-        frame = settings.FRAMES["altars"][self.frame_index]
-        image = pygame.Surface((frame.width, frame.height), pygame.SRCALPHA)
-        image.fill((0, 0, 0, 0))
-        image.blit(texture, (0, 0), frame)
+        image = render.sprite("altars", self.frame_index)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
 
         if self.can_interact():
-            outline = pygame.mask.from_surface(image).to_surface(
-                setcolor=_OUTLINE_COLOR, unsetcolor=(0, 0, 0, 0)
-            )
+            outline = render.outline("altars", self.frame_index, _OUTLINE_COLOR)
             for dx, dy in _OUTLINE_OFFSETS:
-                surface.blit(outline, dest.move(dx, dy))
+                render.blit(surface, outline, dest.move(dx, dy))
 
-        surface.blit(image, dest)
+        render.blit(surface, image, dest)

@@ -22,6 +22,7 @@ import math
 import pygame
 
 import settings
+from src import render
 from src.items.definitions import ITEMS
 
 _OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
@@ -68,19 +69,13 @@ class Pickup:
         ) * settings.ITEM_FLOAT_AMPLITUDE
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
-        texture = settings.TEXTURES[self.texture_id]
-        frame = settings.FRAMES[self.texture_id][self.frame_index]
-        image = pygame.Surface((frame.width, frame.height), pygame.SRCALPHA)
-        image.fill((0, 0, 0, 0))
-        image.blit(texture, (0, 0), frame)
+        image = render.sprite(self.texture_id, self.frame_index)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
 
         outline_color = settings.ITEM_OUTLINE_COLORS[self.texture_id]
-        outline = pygame.mask.from_surface(image).to_surface(
-            setcolor=outline_color, unsetcolor=(0, 0, 0, 0)
-        )
+        outline = render.outline(self.texture_id, self.frame_index, outline_color)
         for dx, dy in _OUTLINE_OFFSETS:
-            surface.blit(outline, dest.move(dx, dy))
+            render.blit(surface, outline, dest.move(dx, dy))
 
-        surface.blit(image, dest)
+        render.blit(surface, image, dest)

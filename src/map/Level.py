@@ -5,7 +5,7 @@ import pygame
 from gale.tilemap import CollisionType, collision_type_at, load_tiled_map
 
 import settings
-from src import debug
+from src import debug, render
 from src.map.Background import ParallaxBackground
 from src.ui.health_bar import render_health_bar
 
@@ -19,6 +19,13 @@ class Level:
 
     def __init__(self, tilemap_path: str) -> None:
         self.tilemap = load_tiled_map(tilemap_path)
+        # The map's tile layers, flattened into one image once here
+        # rather than re-blitted tile by tile every frame. TileMap.render
+        # culls to the visible range, but that is still ~300 individual
+        # per-pixel-alpha blits per frame through pygame's own (slow)
+        # blitter; against one cached surface the same frame is a single
+        # blit through SDL2's - see src.render.
+        self._tilemap_surface = self._prerender_tilemap()
         self.entities: List[Any] = []
         self.background = ParallaxBackground(
             self.get_rect().width, settings.VIRTUAL_WIDTH
@@ -64,9 +71,41 @@ class Level:
 
         self.entities = [entity for entity in self.entities if not entity.is_dead]
 
+    def _prerender_tilemap(self) -> pygame.Surface:
+        """
+        :returns: Every tile layer drawn, in order, onto one
+            pixel_width x pixel_height transparent surface at 1:1 - what
+            _render_tilemap then scrolls past the camera.
+        """
+        surface = pygame.Surface(
+            (self.tilemap.pixel_width, self.tilemap.pixel_height), pygame.SRCALPHA
+        )
+        # camera=None renders the whole map at 1:1 from (0, 0), which is
+        # exactly this surface's coordinate system.
+        self.tilemap.render(surface)
+        return surface.convert_alpha()
+
+    def _render_tilemap(self, surface: pygame.Surface, camera: Any) -> None:
+        """Blit the cached tilemap image, scrolled by the camera.
+
+        Only correct at zoom 1 (where a tile's on-screen position is
+        round(x - offset_x), and x is always a whole number of pixels, so
+        offsetting the whole image by round(-offset_x) lands every tile
+        on the same pixel the per-tile path would have). Anything else
+        falls back to TileMap.render, which handles scaling properly.
+        """
+        if camera.zoom != 1:
+            self.tilemap.render(surface, camera)
+            return
+
+        offset_x, offset_y = camera.offset
+        render.blit(
+            surface, self._tilemap_surface, (round(-offset_x), round(-offset_y))
+        )
+
     def render(self, surface: pygame.Surface, camera: Any) -> None:
         self.background.render(surface, camera)
-        self.tilemap.render(surface, camera)
+        self._render_tilemap(surface, camera)
         for entity in self.entities:
             entity.render(surface, camera)
             if getattr(entity, "SHOW_HEALTH_BAR", False):

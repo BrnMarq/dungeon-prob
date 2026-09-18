@@ -32,6 +32,7 @@ import random
 import pygame
 
 import settings
+from src import render
 
 # tall-trees.png is a 2x2 grid (settings.FRAMES row-major): row 0 (frame
 # indices 0-1) is the leafy variant, row 1 (2-3) the bare-branch one -
@@ -63,7 +64,11 @@ def _scaled_sprites(
         cell = texture.subsurface(rect)
         scale = target_height / rect.height
         target_width = max(1, round(rect.width * scale))
-        sprites.append(pygame.transform.smoothscale(cell, (target_width, target_height)))
+        sprites.append(
+            pygame.transform.smoothscale(
+                cell, (target_width, target_height)
+            ).convert_alpha()
+        )
     return sprites
 
 
@@ -109,7 +114,7 @@ class ParallaxBackground:
         self._forest_sprite = pygame.transform.scale(
             forest_texture,
             (forest_texture.get_width(), settings.BACKGROUND_FOREST_HEIGHT),
-        )
+        ).convert_alpha()
 
         self._huge_trees = _build_layer(
             "huge_trees",
@@ -155,7 +160,7 @@ class ParallaxBackground:
         sprite = self._forest_sprite
         screen_x = -offset_x * settings.BACKGROUND_FOREST_SCROLL_FACTOR
         screen_y = surface.get_height() - sprite.get_height()
-        surface.blit(sprite, (round(screen_x), round(screen_y)))
+        render.blit(surface, sprite, (round(screen_x), round(screen_y)))
 
     def _render_layer(self, surface: pygame.Surface, offset_x: float, layer: _Layer) -> None:
         surface_width = surface.get_width()
@@ -166,4 +171,4 @@ class ParallaxBackground:
             if screen_x + sprite.get_width() < 0 or screen_x > surface_width:
                 continue
 
-            surface.blit(sprite, (round(screen_x), 0))
+            render.blit(surface, sprite, (round(screen_x), 0))

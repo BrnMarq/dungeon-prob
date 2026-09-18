@@ -14,6 +14,7 @@ from typing import Any
 import pygame
 
 import settings
+from src import render
 
 _FRAME_INDICES = (0, 1, 2, 3)
 
@@ -54,11 +55,8 @@ class HitEffect:
         self.frame_index = _FRAME_INDICES[self._frame_pos]
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
-        texture = settings.TEXTURES[self.TEXTURE_ID]
         frame = settings.FRAMES[self.TEXTURE_ID][self.frame_index]
-        image = pygame.Surface((frame.width, frame.height), pygame.SRCALPHA)
-        image.fill((0, 0, 0, 0))
-        image.blit(texture, (0, 0), frame)
+        image = render.sprite(self.TEXTURE_ID, self.frame_index)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, frame.width, frame.height))
-        surface.blit(image, dest)
+        render.blit(surface, image, dest)
