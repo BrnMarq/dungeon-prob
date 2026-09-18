@@ -138,6 +138,7 @@ class Chest:
         self.player.gold -= self.cost
         self._pending_item_id = self._roll_item()
         self.opening = True
+        settings.SOUNDS["chest_open"].play()
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
         image = render.sprite("chest", self.frame_index)
