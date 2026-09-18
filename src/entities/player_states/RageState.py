@@ -36,6 +36,8 @@ class RageState(BaseEntityState):
         self.entity.vx = self.entity.speed * self.entity.move_direction
 
     def _land_hit(self) -> None:
+        settings.SOUNDS["rage_hit"].play()
+
         entity = self.entity
         center_x = entity.x + entity.width / 2
         center_y = entity.y + entity.height / 2

@@ -621,6 +621,17 @@ SOUNDS = {
     "item_pickup": pygame.mixer.Sound(
         BASE_DIR / "assets" / "sounds" / "item-pickup.wav"
     ),
+    # Player ability sounds - src.entities.player_states.AttackState/
+    # DashState/RageState, src.entities.ThrownSword (the W ability's
+    # projectile).
+    "basic_attack": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "basic-attack.wav"
+    ),
+    "dash": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "dash.wav"),
+    "rage_hit": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "rage-hit.wav"),
+    "shadow_throw_hit": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "shadow-throw-hit.wav"
+    ),
 }
 
 # Background music, one track per state (src.audio.play_music) - paths
