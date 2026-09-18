@@ -121,6 +121,10 @@ class Player(Entity):
         self.xp = 0
         self.xp_to_next_level = settings.PLAYER_XP_TO_NEXT_LEVEL
         self.gold = 0
+        # Run-wide stats for src.states.VictoryState - never reset mid-run
+        # (see PlayState._reset_level, which leaves player stats alone).
+        self.kills_count = 0
+        self.total_damage_dealt = 0.0
 
         self.dash_requested = False
         self.dash_cooldown_timer = 0.0
@@ -238,7 +242,9 @@ class Player(Entity):
             self._reduce_cooldowns_on_crit()
         if self.item_stacks[ITEM_JIMBO] > 0:
             damage *= settings.ITEM_JIMBO_DAMAGE_MULTIPLIER
-        return round(damage)
+        damage = round(damage)
+        self.total_damage_dealt += damage
+        return damage
 
     @property
     def crit_chance(self) -> float:
@@ -273,6 +279,7 @@ class Player(Entity):
         get_damage. A no-op at 0 stacks, so kills before picking it up
         (and kills entirely without it) contribute nothing.
         """
+        self.kills_count += 1
         self.bonus_damage_from_kills += (
             settings.ITEM_SOUL_BOX_BONUS_PER_KILL * self.item_stacks[ITEM_SOUL_BOX]
         )
