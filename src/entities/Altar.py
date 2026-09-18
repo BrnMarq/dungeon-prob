@@ -11,7 +11,8 @@ read/react to the same phase, and a level reset (PlayState._reset_level)
 replaces this altar object entirely - the phase has to survive that:
 
 - "inactive": dormant (frame 0). Touching it and pressing "interact"
-  moves to "activating" and starts the wind-up animation.
+  fully heals the player, moves to "activating", and starts the wind-up
+  animation.
 - "activating": plays altars.png's remaining 3 frames
   (ALTAR_ACTIVATE_FRAME_INTERVAL apart), then moves to "active" and
   starts settings.ALTAR_BUFF_DURATION seconds of PlayState's spawn-rate
@@ -113,6 +114,7 @@ class Altar:
             self.player.interact_requested = False
             self.level.altar_phase = "activating"
             self._activate_anim_timer = 0.0
+            self.player.hp = self.player.max_hp
             return
 
         if phase == "ended":

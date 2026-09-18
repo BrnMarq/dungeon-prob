@@ -1,5 +1,5 @@
 import settings
-from src.entities.climbing import is_touching_climbable
+from src.entities.climbing import climbable_column_center_x
 from src.entities.states.BaseEntityState import BaseEntityState
 
 
@@ -9,9 +9,11 @@ class ClimbState(BaseEntityState):
     above/below it. Cancels gravity entirely - vy is driven straight off
     the target's vertical direction each frame, mirroring src.entities.
     player_states.ClimbState but aimed at the target instead of reading
-    input. Exits back to "follow" once vertically close enough to the
-    target to resume the horizontal chase, or once it drifts off the
-    climbable tile entirely.
+    input. The entity's x is snapped to the vine column's center every
+    frame instead of being movable, so it climbs straight up/down. Exits
+    back to "follow" once vertically close enough to the target to
+    resume the horizontal chase, or once it drifts off the climbable
+    tile entirely.
     """
 
     def enter(self) -> None:
@@ -22,7 +24,8 @@ class ClimbState(BaseEntityState):
     def update(self, dt: float) -> None:
         target = self.entity.target
 
-        if target is None or not is_touching_climbable(self.entity):
+        center_x = climbable_column_center_x(self.entity)
+        if target is None or center_x is None:
             self.entity.change_state("follow")
             return
 
@@ -35,9 +38,10 @@ class ClimbState(BaseEntityState):
             self.entity.change_state("follow")
             return
 
+        self.entity.x = center_x - self.entity.width / 2
+        self.entity.vx = 0
         self.entity.vy = settings.CLIMB_SPEED * (1 if dy > 0 else -1)
 
         dx = target.x - self.entity.x
         self.entity.move_direction = 1 if dx > 0 else -1
         self.entity.flipped = self.entity.move_direction < 0
-        self.entity.vx = settings.DEMON_SPEED * self.entity.move_direction

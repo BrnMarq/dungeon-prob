@@ -7,8 +7,8 @@ flips true, so it lives for the whole level.
 
 Currently used for the two ruins-pillars.png columns
 src.states.PlayState._spawn_pillars plants on either side of the
-player's spawn point - the right one passed flipped=True for a
-mirrored, symmetric pair.
+player's spawn point - frame 0 on the left, frame 1 on the right, the
+right one passed flipped=True for a mirrored, symmetric pair.
 """
 
 from typing import Any

@@ -1,5 +1,5 @@
 import settings
-from src.entities.climbing import is_touching_climbable
+from src.entities.climbing import climbable_column_center_x
 from src.entities.states.BaseEntityState import BaseEntityState
 
 
@@ -8,9 +8,10 @@ class ClimbState(BaseEntityState):
     is touching a climbable vines tile and presses up/down. Cancels
     gravity entirely - vy is driven straight off vertical_direction each
     frame, so no input holds the player in place on the vine instead of
-    falling. Horizontal movement still works, to shift between vine
-    columns. Exits back to "playing" the moment the player either jumps
-    (a deliberate let-go) or drifts off the climbable tile entirely
+    falling. The player's x is snapped to the vine column's center every
+    frame instead of being movable, so it climbs straight up/down.
+    Exits back to "playing" the moment the player either jumps (a
+    deliberate let-go) or drifts off the climbable tile entirely
     (move_and_collide already moved them there by the time this checks).
     """
 
@@ -33,11 +34,13 @@ class ClimbState(BaseEntityState):
             self.entity.change_state("playing")
             return
 
-        if not is_touching_climbable(self.entity):
+        center_x = climbable_column_center_x(self.entity)
+        if center_x is None:
             self.entity.change_state("playing")
             return
 
+        self.entity.x = center_x - self.entity.width / 2
+        self.entity.vx = 0
         if self.entity.move_direction != 0:
             self.entity.flipped = self.entity.move_direction < 0
-        self.entity.vx = self.entity.speed * self.entity.move_direction
         self.entity.vy = settings.CLIMB_SPEED * self.entity.vertical_direction

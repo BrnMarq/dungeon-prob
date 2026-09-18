@@ -87,19 +87,22 @@ class PlayState(BaseState):
     def _spawn_pillars(self) -> None:
         """Two static ruins-pillars.png decorations (src.entities.
         Decoration) flanking the spawn point _spawn_player just picked -
-        purely cosmetic, no collision. The right one is horizontally
-        flipped for a symmetric pair.
+        purely cosmetic, no collision. The left pillar uses frame 0, the
+        right uses frame 1, and the right one is horizontally flipped for
+        a symmetric pair.
         """
         pillar_width, pillar_height = settings.FRAMES["ruins_pillars"][0].size
         gap = settings.PILLAR_SPAWN_GAP
         y = self._spawn_ground_y - pillar_height
 
         self.level.entities.append(
-            Decoration(self._spawn_center_x - gap - pillar_width, y, "ruins_pillars")
+            Decoration(
+                self._spawn_center_x - gap - pillar_width, y, "ruins_pillars", 0
+            )
         )
         self.level.entities.append(
             Decoration(
-                self._spawn_center_x + gap, y, "ruins_pillars", flipped=True
+                self._spawn_center_x + gap, y, "ruins_pillars", 1, flipped=True
             )
         )
 

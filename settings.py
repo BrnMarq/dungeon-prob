@@ -466,7 +466,7 @@ TEXTURES = {
     "altars": pygame.image.load(BASE_DIR / "assets" / "graphics" / "altars.png"),
     # 64x144 - four 16x144 pillar column frames (src.entities.Decoration,
     # flanking the player's spawn point - see
-    # src.states.PlayState._spawn_pillars). Only frame 0 is used today.
+    # src.states.PlayState._spawn_pillars). Frames 0 and 1 are used today.
     "ruins_pillars": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "ruins-pillars.png"
     ),
