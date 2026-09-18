@@ -38,6 +38,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_f, "interact")
 # Reset-the-level choice at an altar once its buff has ended
 # (src.entities.Altar, src.states.PlayState._reset_level).
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_g, "reset")
+# Title screen (src.states.TitleState) - advances to the play state.
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "start")
 
 # Ability bar - Q/W/E/R map straight to HUD slots 1-4 (src.ui.HUD). Q and E
 # are wired to real abilities below; W/R are reserved action ids with
@@ -407,6 +409,20 @@ BACKGROUND_TALL_TREES_SCROLL_FACTOR = 0.5
 BACKGROUND_TALL_TREES_HEIGHT = 360
 BACKGROUND_TALL_TREES_SPACING = 200
 BACKGROUND_TALL_TREES_JITTER = 30
+
+# src.states.TitleState's own ParallaxBackground (built the same way
+# src.map.Level builds one, just without a real level to size it from).
+# How far, in world pixels, the title screen scrolls right before
+# looping back to 0 - kept well under
+# BACKGROUND_FOREST_HEIGHT's sprite width (1440) divided by
+# BACKGROUND_FOREST_SCROLL_FACTOR (0.1) = 14400, the point at which the
+# slow-scrolling forest silhouette would scroll fully off screen and
+# never come back (it's a single sprite, not tiled), so the loop point
+# is never visible as a background layer popping out of existence -
+# only as its instances resetting.
+TITLE_BACKGROUND_LOOP_WIDTH = 8000
+TITLE_SCROLL_SPEED = 40  # world pixels/second the title background scrolls right.
+TITLE_PROMPT_BLINK_INTERVAL = 0.5  # seconds "Press start to play" stays on/off.
 
 # Register your tilemaps from the maps folder, for instance:
 # TILEMAPS = {
