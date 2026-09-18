@@ -179,6 +179,11 @@ DEMON_MAX_HP = 40
 # difficulty tier (see DIFFICULTY_TIERS below) rather than a flat constant.
 DEMON_SPAWN_MIN_DISTANCE_TILES = 4
 DEMON_SPAWN_MAX_DISTANCE_TILES = 10
+# PlayState._spawn_demon re-rolls a fresh column up to this many times
+# before giving up on a spawn tick - the first roll often lands over a
+# gap/chasm with no ground_row, which used to just silently skip that
+# whole spawn_interval.
+DEMON_SPAWN_MAX_ATTEMPTS = 5
 
 # Demon vine-climbing (src.entities.enemy_states.FollowState/ClimbState) -
 # reuses CLIMB_SPEED/JUMP_TAKEOFF_SPEED already tuned for the player. A
@@ -186,7 +191,19 @@ DEMON_SPAWN_MAX_DISTANCE_TILES = 10
 # than this many pixels above/below it, and climbing stops once it's
 # back within this same distance - so it doesn't hunt for exact pixel
 # alignment before resuming the horizontal chase.
-DEMON_CLIMB_ALIGN_THRESHOLD = 8
+DEMON_CLIMB_ALIGN_THRESHOLD = 16
+
+# src.entities.climbing.climbable_column_center_x - width (in pixels,
+# centered on the vine tile's own column) of the actual "grab zone" a
+# hurtbox must overlap to count as touching a climbable tile. The vine
+# art itself (assets/graphics/forest.png) is a thin strand well short of
+# the full 16px tile it sits in, but both the player (32px) and demons
+# (20px) are wider than one tile - checking the whole tile's bounding
+# box let their hurtbox edge clip a vine column just from walking past
+# it, latching them onto a "climb" they never meant to grab and never
+# properly left (still overlapping that same wide box after climbing to
+# the top, so they'd keep re-grabbing instead of jumping off).
+CLIMB_GRAB_WIDTH = 3
 
 # Overhead enemy health bar (src/ui/health_bar.py, drawn from
 # src.map.Level.render for any entity with SHOW_HEALTH_BAR = True) - only
@@ -464,9 +481,10 @@ TEXTURES = {
     # 320x80 - four 80x80 frames (src.entities.Altar): frame 0 dormant,
     # the remaining 3 the activation animation, ending on the active frame.
     "altars": pygame.image.load(BASE_DIR / "assets" / "graphics" / "altars.png"),
-    # 64x144 - four 16x144 pillar column frames (src.entities.Decoration,
-    # flanking the player's spawn point - see
-    # src.states.PlayState._spawn_pillars). Frames 0 and 1 are used today.
+    # 64x144 - a 2-col x 3-row grid of 32x48 cells (src.entities.
+    # Decoration, flanking the player's spawn point - see
+    # src.states.PlayState._spawn_pillars). Only row 0 (frames 0/1) is
+    # the actual pillar art; rows 1-2 are unrelated/unused.
     "ruins_pillars": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "ruins-pillars.png"
     ),
@@ -500,7 +518,7 @@ FRAMES = {
     "gold_icon": frames.generate_frames(TEXTURES["gold_icon"], 32, 32),
     "chest": frames.generate_frames(TEXTURES["chest"], 16, 16),
     "altars": frames.generate_frames(TEXTURES["altars"], 80, 80),
-    "ruins_pillars": frames.generate_frames(TEXTURES["ruins_pillars"], 16, 144),
+    "ruins_pillars": frames.generate_frames(TEXTURES["ruins_pillars"], 32, 48),
 }
 
 # src.ui.HUD - seconds each gold_icon coin-spin frame holds for.

@@ -11,6 +11,8 @@ this checks for them directly.
 
 from typing import Optional
 
+import settings
+
 _VINES_LAYER = "vines"
 _CLIMBABLE = "climbable"
 
@@ -19,12 +21,15 @@ def climbable_column_center_x(entity) -> Optional[float]:
     """
     :returns: The x-center of the first "vines" tile (column-major, so
         stable pick when a hurtbox spans two columns) whose collision
-        property is "climbable" that entity's hurtbox overlaps, or None
-        if it isn't touching one. Both src.entities.player_states.
-        ClimbState and src.entities.enemy_states.ClimbState snap the
-        entity's x to this each frame while climbing, so it moves
-        straight up/down the vine instead of drifting off it
-        horizontally.
+        property is "climbable" AND whose settings.CLIMB_GRAB_WIDTH-wide
+        grab zone (centered on that tile's column, much thinner than the
+        full tile - see CLIMB_GRAB_WIDTH) entity's hurtbox actually
+        overlaps, or None if it isn't touching one. A plain full-tile
+        overlap check let a wide hurtbox's edge clip a vine column just
+        from walking past it. Both src.entities.player_states.ClimbState
+        and src.entities.enemy_states.ClimbState snap the entity's x to
+        this each frame while climbing, so it moves straight up/down the
+        vine instead of drifting off it horizontally.
     """
     tilemap = entity.tilemap
     min_row = max(0, int(entity.y // tilemap.tile_height))
@@ -36,13 +41,24 @@ def climbable_column_center_x(entity) -> Optional[float]:
         tilemap.cols - 1, int((entity.x + entity.width - 1) // tilemap.tile_width)
     )
 
+    half_grab_width = settings.CLIMB_GRAB_WIDTH / 2
+    entity_left = entity.x
+    entity_right = entity.x + entity.width
+
     for col in range(min_col, max_col + 1):
+        center_x = col * tilemap.tile_width + tilemap.tile_width / 2
+        if (
+            entity_right <= center_x - half_grab_width
+            or entity_left >= center_x + half_grab_width
+        ):
+            continue
+
         for row in range(min_row, max_row + 1):
             gid = tilemap.get_gid(_VINES_LAYER, row, col)
             if gid == 0:
                 continue
             if tilemap.properties_of_gid(gid).get("collision") == _CLIMBABLE:
-                return col * tilemap.tile_width + tilemap.tile_width / 2
+                return center_x
 
     return None
 
@@ -55,3 +71,23 @@ def is_touching_climbable(entity) -> bool:
         "platform", just against a different layer/property value.
     """
     return climbable_column_center_x(entity) is not None
+
+
+def vertical_climb_direction(entity, target) -> int:
+    """
+    :returns: 1 if target is more than settings.DEMON_CLIMB_ALIGN_
+        THRESHOLD pixels below entity (climb down), -1 if it's that far
+        above (climb up), or 0 if they're already within that threshold
+        of each other. Single source of truth for src.entities.
+        enemy_states.FollowState (decides whether to grab a vine at all)
+        and ClimbState (decides which way to climb, and when to let go
+        and fall back to a plain horizontal chase) so the two states can
+        never disagree about "close enough" and leave the entity stuck
+        oscillating between them right at the threshold.
+    """
+    dy = target.y - entity.y
+    if dy > settings.DEMON_CLIMB_ALIGN_THRESHOLD:
+        return 1
+    if dy < -settings.DEMON_CLIMB_ALIGN_THRESHOLD:
+        return -1
+    return 0

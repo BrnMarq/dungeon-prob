@@ -107,19 +107,34 @@ class PlayState(BaseState):
         )
 
     def _spawn_demon(self) -> None:
+        """Rolls a random column at settings.DEMON_SPAWN_MIN/MAX_DISTANCE_
+        TILES from the player, alternating sides, and re-rolls (up to
+        DEMON_SPAWN_MAX_ATTEMPTS times) whenever that column has no
+        ground_row - e.g. it landed over a gap/chasm - instead of giving
+        up on the whole spawn tick, since spawn_timer has already been
+        reset by the caller and a giveup here would silently skip that
+        entire spawn_interval with nothing appearing.
+        """
         tile_width = self.level.tilemap.tile_width
         player_col = int(self.player.x // tile_width)
-        distance = random.randint(
-            settings.DEMON_SPAWN_MIN_DISTANCE_TILES,
-            settings.DEMON_SPAWN_MAX_DISTANCE_TILES,
-        )
-        direction = random.choice((-1, 1))
-        spawn_col = max(
-            0, min(self.level.tilemap.cols - 1, player_col + direction * distance)
-        )
 
-        row = self.level.ground_row(spawn_col)
-        if row is None:
+        spawn_col = None
+        row = None
+        for _ in range(settings.DEMON_SPAWN_MAX_ATTEMPTS):
+            distance = random.randint(
+                settings.DEMON_SPAWN_MIN_DISTANCE_TILES,
+                settings.DEMON_SPAWN_MAX_DISTANCE_TILES,
+            )
+            direction = random.choice((-1, 1))
+            col = max(
+                0, min(self.level.tilemap.cols - 1, player_col + direction * distance)
+            )
+            row = self.level.ground_row(col)
+            if row is not None:
+                spawn_col = col
+                break
+
+        if spawn_col is None:
             return
 
         spawn_x = spawn_col * tile_width
@@ -160,6 +175,13 @@ class PlayState(BaseState):
         Level.ground_row, and Altar.spawn_position anchors the sprite's
         own art (not its padded cell's raw edges - see Altar.ART_BOTTOM/
         ART_CENTER_X) to that row's surface, centered on the point.
+
+        Scans from the point's own row (Level.ground_row's start_row),
+        same reasoning as _spawn_player - this map has more than one
+        platform stacked in the same column in places, and scanning from
+        the top of the map would land the altar on whichever platform
+        happens to be topmost there, not the one the point was actually
+        placed on.
         """
         spawn_points = self.level.tilemap.object_layers.get("altars", [])
         if not spawn_points:
@@ -167,9 +189,11 @@ class PlayState(BaseState):
         point = random.choice(spawn_points)
 
         tile_width = self.level.tilemap.tile_width
+        tile_height = self.level.tilemap.tile_height
         center_x = point.x + point.width / 2
         col = int(center_x // tile_width)
-        row = self.level.ground_row(col)
+        start_row = int(point.y // tile_height)
+        row = self.level.ground_row(col, start_row=start_row)
         if row is None:
             return
 
