@@ -6,6 +6,7 @@ from gale.input_handler import InputData
 from gale.text import render_text
 
 import settings
+from src.audio import play_music
 from src.map.Background import ParallaxBackground
 from src.states.BaseState import BaseState
 
@@ -30,6 +31,8 @@ class _ScrollOffset:
 
 class TitleState(BaseState):
     def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
+        play_music("title")
+
         self.background = ParallaxBackground(
             settings.TITLE_BACKGROUND_LOOP_WIDTH, settings.VIRTUAL_WIDTH
         )

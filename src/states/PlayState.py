@@ -7,6 +7,7 @@ from gale.camera import Camera
 from gale.input_handler import InputData
 
 import settings
+from src.audio import play_music
 from src.entities.Altar import Altar
 from src.entities.Chest import Chest
 from src.entities.Decoration import Decoration
@@ -19,6 +20,8 @@ from src.ui.HUD import HUD
 
 class PlayState(BaseState):
     def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
+        play_music("playing")
+
         self.level = Level(settings.TILEMAPS['forest'])
 
         self._spawn_player()

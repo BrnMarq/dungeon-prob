@@ -603,6 +603,18 @@ HIT_EFFECT_FRAME_INTERVAL = 0.05
 # }
 SOUNDS = {}
 
+# Background music, one track per state (src.audio.play_music) - paths
+# rather than preloaded pygame.mixer.Sound objects (unlike SOUNDS above)
+# since these are streamed through pygame.mixer.music instead of loaded
+# fully into memory, which is what that API expects/is suited for with
+# tracks this long.
+MUSIC = {
+    "title": BASE_DIR / "assets" / "sounds" / "title.mp3",
+    "playing": BASE_DIR / "assets" / "sounds" / "playing.mp3",
+    "game_over": BASE_DIR / "assets" / "sounds" / "game-over.mp3",
+    "victory": BASE_DIR / "assets" / "sounds" / "victory.mp3",
+}
+
 # Register your fonts from the fonts folder, for instance:
 # FONTS = {
 #     'small': pygame.font.Font(BASE_DIR / "assets"  / "fonts" / "font.ttf", 8)

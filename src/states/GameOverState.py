@@ -6,6 +6,7 @@ from gale.input_handler import InputData
 from gale.text import render_text
 
 import settings
+from src.audio import play_music
 from src.states.BaseState import BaseState
 
 TITLE_FONT_SIZE = 48
@@ -19,6 +20,8 @@ PROMPT_COLOR = pygame.Color(235, 235, 235)
 
 class GameOverState(BaseState):
     def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
+        play_music("game_over")
+
         self.blink_timer = 0.0
         self.show_prompt = True
 
