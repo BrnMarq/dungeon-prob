@@ -642,6 +642,11 @@ SOUNDS = {
     "demon_attack": pygame.mixer.Sound(
         BASE_DIR / "assets" / "sounds" / "demon-attack.wav"
     ),
+    # src.entities.Chest.update - played the moment a chest starts
+    # opening.
+    "chest_open": pygame.mixer.Sound(
+        BASE_DIR / "assets" / "sounds" / "chest-open.wav"
+    ),
 }
 
 # Background music, one track per state (src.audio.play_music) - paths
