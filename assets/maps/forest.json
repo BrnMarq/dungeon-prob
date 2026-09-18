@@ -1013,6 +1013,15 @@
                         }]
                 }, 
                 {
+                 "id":83,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"string",
+                         "value":"climbable"
+                        }]
+                }, 
+                {
                  "id":86,
                  "properties":[
                         {
@@ -1028,6 +1037,15 @@
                          "name":"collision",
                          "type":"string",
                          "value":"solid"
+                        }]
+                }, 
+                {
+                 "id":100,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"string",
+                         "value":"climbable"
                         }]
                 }, 
                 {
@@ -1049,6 +1067,15 @@
                         }]
                 }, 
                 {
+                 "id":117,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"string",
+                         "value":"climbable"
+                        }]
+                }, 
+                {
                  "id":120,
                  "properties":[
                         {
@@ -1064,6 +1091,15 @@
                          "name":"collision",
                          "type":"string",
                          "value":"solid"
+                        }]
+                }, 
+                {
+                 "id":134,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"string",
+                         "value":"climbable"
                         }]
                 }, 
                 {
