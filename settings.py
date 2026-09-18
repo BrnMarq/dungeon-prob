@@ -50,6 +50,20 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_w, "ability_2")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_e, "dash")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_r, "ability_4")
 
+# Displayed key text for the bindings above - not read by input_handler
+# itself, only by on-screen key-bind text: src.ui.HUD's ability slot
+# letters and src.ui.interact_prompt's "Press X to Y" overlays.
+INPUT_KEY_LABELS = {
+    "attack": "Q",
+    "ability_2": "W",
+    "dash": "E",
+    "ability_4": "R",
+    "interact": "F",
+    "reset": "G",
+    "start": "Enter",
+    "quit": "Esc",
+}
+
 TITLE = "Dungeon Prob"
 
 # Size we want to emulate
