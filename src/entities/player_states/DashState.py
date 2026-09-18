@@ -18,6 +18,7 @@ class DashState(BaseEntityState):
         self.entity.vy = 0
         self.timer = settings.PLAYER_DASH_DURATION
         self.entity.invincible_timer = settings.PLAYER_INVINCIBILITY_DURATION
+        settings.SOUNDS["dash"].play()
 
     def update(self, dt: float) -> None:
         # Dropped, not buffered - see AttackState.update's identical guard.

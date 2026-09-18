@@ -20,6 +20,7 @@ class AttackState(BaseEntityState):
         self._elapsed = 0.0
         self._hit_landed = False
         self._update_vx()
+        settings.SOUNDS["basic_attack"].play()
 
     def _update_vx(self) -> None:
         """Rooted while grounded (a ground attack shouldn't slide), but
