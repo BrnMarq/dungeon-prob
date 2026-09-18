@@ -38,6 +38,11 @@ class Entity(mixins.DrawableMixin, mixins.AnimatedMixin, mixins.CollidableMixin)
         self.vx: float = 0
         self.vy: float = 0
         self.move_direction: int = 0
+        # Climbing intent (src.entities.player_states.ClimbState) - -1 up,
+        # 1 down, 0 neither. Only the player currently binds move_up/
+        # move_down to it, but it lives here alongside move_direction for
+        # the same reason: any Entity could be driven by those commands.
+        self.vertical_direction: int = 0
         self.jump_requested: bool = False
         self.texture_id = texture_id
         self.frame_index = -1

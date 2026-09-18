@@ -25,6 +25,11 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_d, "move_right"
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_a, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "jump")
+# Climbing vines (src.entities.player_states.ClimbState) - only takes
+# effect while touching a "vines" tile whose collision property is
+# "climbable".
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_UP, "move_up")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_down")
 input_handler.InputHandler.set_keyboard_action(
     input_handler.KEY_h, "toggle_debug_hitboxes"
 )
@@ -68,6 +73,11 @@ PLAYER_SPEED = 80
 # Fixed-height jump - always the same takeoff speed regardless of how long
 # "jump" is held (see src.entities.player_states.PlayingState).
 JUMP_TAKEOFF_SPEED = GRAVITY / 4
+
+# Vertical speed while climbing a "vines" tile (src.entities.
+# player_states.ClimbState) - gravity is cancelled entirely while
+# climbing, so this is the player's only vertical speed there.
+CLIMB_SPEED = 60
 
 # Dash: a short, gravity-cancelling horizontal burst - see
 # src.entities.player_states.DashState. Duration matches the 7-frame dash
@@ -448,6 +458,12 @@ TEXTURES = {
     # 320x80 - four 80x80 frames (src.entities.Altar): frame 0 dormant,
     # the remaining 3 the activation animation, ending on the active frame.
     "altars": pygame.image.load(BASE_DIR / "assets" / "graphics" / "altars.png"),
+    # 64x144 - four 16x144 pillar column frames (src.entities.Decoration,
+    # flanking the player's spawn point - see
+    # src.states.PlayState._spawn_pillars). Only frame 0 is used today.
+    "ruins_pillars": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "ruins-pillars.png"
+    ),
 }
 
 # The single pixel in background.png is the parallax background's sky
@@ -478,6 +494,7 @@ FRAMES = {
     "gold_icon": frames.generate_frames(TEXTURES["gold_icon"], 32, 32),
     "chest": frames.generate_frames(TEXTURES["chest"], 16, 16),
     "altars": frames.generate_frames(TEXTURES["altars"], 80, 80),
+    "ruins_pillars": frames.generate_frames(TEXTURES["ruins_pillars"], 16, 144),
 }
 
 # src.ui.HUD - seconds each gold_icon coin-spin frame holds for.
@@ -518,6 +535,13 @@ ALTAR_SPAWN_INTERVAL_MULTIPLIER = 0.5
 # 3 activation frames (indices 1-3) played at this interval before
 # settling on the last one permanently.
 ALTAR_ACTIVATE_FRAME_INTERVAL = 0.15
+
+# Player spawn point (src.states.PlayState._spawn_player/_spawn_pillars)
+# - picked once per level from the map's "spawns" object layer (a set of
+# possible spawn points, same pattern as chests/altars), then flanked by
+# two ruins-pillars.png decorations this many pixels out from the
+# point's own center on either side.
+PILLAR_SPAWN_GAP = 20
 
 # src.entities.HitEffect - seconds each of its 4 frames holds for (a
 # quick flash - the whole animation plays out in 4x this, well under the

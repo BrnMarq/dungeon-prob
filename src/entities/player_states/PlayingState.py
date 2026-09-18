@@ -1,4 +1,5 @@
 import settings
+from src.entities.player_states.ClimbState import is_touching_climbable
 from src.entities.states.BaseEntityState import BaseEntityState
 
 
@@ -14,6 +15,10 @@ class PlayingState(BaseEntityState):
     def update(self, dt: float) -> None:
         if self.entity.move_direction != 0:
             self.entity.flipped = self.entity.move_direction < 0
+
+        if self.entity.vertical_direction != 0 and is_touching_climbable(self.entity):
+            self.entity.change_state("climb")
+            return
 
         if self.entity.attack_requested:
             self.entity.attack_requested = False

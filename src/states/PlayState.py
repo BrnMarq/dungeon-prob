@@ -9,6 +9,7 @@ from gale.input_handler import InputData
 import settings
 from src.entities.Altar import Altar
 from src.entities.Chest import Chest
+from src.entities.Decoration import Decoration
 from src.entities.Player import Player
 from src.entities.SmallDemon import SmallDemon
 from src.map.Level import Level
@@ -20,16 +21,14 @@ class PlayState(BaseState):
     def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
         self.level = Level(settings.TILEMAPS['forest'])
 
-        # Looked up rather than hardcoded, so edits to the map's ground
-        # height don't leave the player spawning inside/below it. Resting
-        # exactly on the surface, not a few pixels in, so move_and_collide's
-        # one-way platform check (which needs the entity already at/above
-        # the surface) picks it up on the very first frame.
-        spawn_col = 16 // self.level.tilemap.tile_width
-        spawn_row = self.level.ground_row(spawn_col)
-        spawn_y = spawn_row * self.level.tilemap.tile_height - Player.HEIGHT
-        self.player = Player(16, spawn_y, self.level)
+        self._spawn_player()
+        self.player = Player(
+            self._spawn_center_x - Player.WIDTH / 2,
+            self._spawn_ground_y - Player.HEIGHT,
+            self.level,
+        )
         self.level.entities.append(self.player)
+        self._spawn_pillars()
 
         self.camera = Camera(settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT)
         self.camera.bounds = self.level.get_rect()
@@ -46,6 +45,53 @@ class PlayState(BaseState):
         self.hud = HUD(self.player)
         self._spawn_chests()
         self._spawn_altar()
+
+    def _spawn_player(self) -> None:
+        """Picks the player's spawn column/ground row once per level -
+        from a random point in the map's "spawns" object layer (same
+        set-of-possible-points pattern as chests/altars), falling back to
+        the map's leftmost column if that layer is ever empty. Looked up
+        rather than hardcoded, so edits to the map's ground height don't
+        leave the player spawning inside/below it, and stored on self
+        rather than only returned so _reset_level and _spawn_pillars can
+        reuse the exact same point instead of re-rolling it.
+        """
+        tile_width = self.level.tilemap.tile_width
+        spawn_points = self.level.tilemap.object_layers.get("spawns", [])
+        if spawn_points:
+            point = random.choice(spawn_points)
+            center_x = point.x + point.width / 2
+        else:
+            center_x = 16
+
+        col = int(center_x // tile_width)
+        row = self.level.ground_row(col)
+
+        self._spawn_center_x = center_x
+        # Resting exactly on the surface, not a few pixels in, so
+        # move_and_collide's one-way platform check (which needs the
+        # entity already at/above the surface) picks it up on the very
+        # first frame.
+        self._spawn_ground_y = row * self.level.tilemap.tile_height
+
+    def _spawn_pillars(self) -> None:
+        """Two static ruins-pillars.png decorations (src.entities.
+        Decoration) flanking the spawn point _spawn_player just picked -
+        purely cosmetic, no collision. The right one is horizontally
+        flipped for a symmetric pair.
+        """
+        pillar_width, pillar_height = settings.FRAMES["ruins_pillars"][0].size
+        gap = settings.PILLAR_SPAWN_GAP
+        y = self._spawn_ground_y - pillar_height
+
+        self.level.entities.append(
+            Decoration(self._spawn_center_x - gap - pillar_width, y, "ruins_pillars")
+        )
+        self.level.entities.append(
+            Decoration(
+                self._spawn_center_x + gap, y, "ruins_pillars", flipped=True
+            )
+        )
 
     def _spawn_demon(self) -> None:
         active_demons = sum(
@@ -133,10 +179,8 @@ class PlayState(BaseState):
         level, items, hp) untouched, since this is a "descend deeper,
         same run" choice, not a new game.
         """
-        spawn_col = 16 // self.level.tilemap.tile_width
-        spawn_row = self.level.ground_row(spawn_col)
-        self.player.x = 16
-        self.player.y = spawn_row * self.level.tilemap.tile_height - Player.HEIGHT
+        self.player.x = self._spawn_center_x - Player.WIDTH / 2
+        self.player.y = self._spawn_ground_y - Player.HEIGHT
         self.player.vx = 0
         self.player.vy = 0
 
@@ -146,6 +190,7 @@ class PlayState(BaseState):
         self.spawn_timer = 0.0
         self._spawn_chests()
         self._spawn_altar()
+        self._spawn_pillars()
 
         self.camera.x, self.camera.y = self.player.x, self.player.y
         self.camera.update(0)
