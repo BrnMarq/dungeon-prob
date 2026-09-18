@@ -1121,6 +1121,15 @@
                         }]
                 }, 
                 {
+                 "id":124,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"string",
+                         "value":"solid"
+                        }]
+                }, 
+                {
                  "id":125,
                  "properties":[
                         {
