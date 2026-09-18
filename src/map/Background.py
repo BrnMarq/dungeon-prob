@@ -14,12 +14,15 @@ huge-trees.png/tall-trees.png's cells (800x500, 600x624) are rescaled to
 BACKGROUND_*_HEIGHT (aspect-preserved) once at construction, then
 scattered as individual tree instances at SPACING intervals (+/- JITTER)
 across the level's width plus a viewport's worth of margin on each side
-- rather than tiled, since even at these larger sizes the sheets stay
-wider than this map's own camera scroll range. All three tree layers pin
-to the top of the screen (canopies hang down from off-screen above, like
-an overhead tree line), unlike background-forest.png's silhouette, which
+- rather than tiled, since even at these larger sheets stay wider than
+this map's own camera scroll range. All three tree layers pin to the top
+of the screen (canopies hang down from off-screen above, like an
+overhead tree line), unlike background-forest.png's silhouette, which
 stays bottom-anchored since its treeline art sits at the bottom of its
-own image.
+own image - and is rescaled to BACKGROUND_FOREST_HEIGHT too (aspect-
+preserved), since left at its native 1440x800 the solid ground fill
+alone was tall enough to cover the entire (much shorter) viewport,
+hiding the treeline silhouette above it.
 """
 
 from typing import Any, List, NamedTuple, Sequence
@@ -96,6 +99,18 @@ class ParallaxBackground:
     def __init__(self, level_width: float, viewport_width: float) -> None:
         margin = viewport_width
 
+        # Height-only scale (not aspect-preserved, unlike every other
+        # layer below) - background-forest.png's 1440px width has to stay
+        # exactly as wide as it started, since that width (not this
+        # layer's own scroll_factor) is what keeps it covering the
+        # viewport as the camera scrolls the level; only its height needs
+        # shrinking to fit the screen.
+        forest_texture = settings.TEXTURES["background_forest"]
+        self._forest_sprite = pygame.transform.scale(
+            forest_texture,
+            (forest_texture.get_width(), settings.BACKGROUND_FOREST_HEIGHT),
+        )
+
         self._huge_trees = _build_layer(
             "huge_trees",
             range(len(settings.FRAMES["huge_trees"])),
@@ -137,10 +152,10 @@ class ParallaxBackground:
         self._render_layer(surface, offset_x, self._tall_trees_front)
 
     def _render_forest(self, surface: pygame.Surface, offset_x: float) -> None:
-        texture = settings.TEXTURES["background_forest"]
+        sprite = self._forest_sprite
         screen_x = -offset_x * settings.BACKGROUND_FOREST_SCROLL_FACTOR
-        screen_y = surface.get_height() - texture.get_height()
-        surface.blit(texture, (round(screen_x), round(screen_y)))
+        screen_y = surface.get_height() - sprite.get_height()
+        surface.blit(sprite, (round(screen_x), round(screen_y)))
 
     def _render_layer(self, surface: pygame.Surface, offset_x: float, layer: _Layer) -> None:
         surface_width = surface.get_width()

@@ -340,6 +340,15 @@ ITEM_OUTLINE_COLORS = {
 # ParallaxBackground) rather than tiled, since these sheets are already
 # wider than this map's own scroll range.
 BACKGROUND_FOREST_SCROLL_FACTOR = 0.1
+# background-forest.png is a single wide 1440x800 silhouette, drastically
+# taller than the 360px-tall viewport - left at native size (and bottom-
+# anchored), its solid ground fill alone was tall enough to cover the
+# entire screen, hiding the treeline silhouette above it entirely. Scaled
+# down (aspect-preserved) so its own top edge - not a fixed row within
+# the art - lands at BACKGROUND_FOREST_TOP_RATIO of the screen height,
+# same bottom-anchoring as before.
+BACKGROUND_FOREST_TOP_RATIO = 0.05
+BACKGROUND_FOREST_HEIGHT = round(VIRTUAL_HEIGHT * (1 - BACKGROUND_FOREST_TOP_RATIO))
 BACKGROUND_HUGE_TREES_SCROLL_FACTOR = 0.3
 BACKGROUND_HUGE_TREES_HEIGHT = 300
 BACKGROUND_HUGE_TREES_SPACING = 260
