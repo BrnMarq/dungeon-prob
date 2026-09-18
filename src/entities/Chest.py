@@ -35,6 +35,7 @@ import settings
 from src import render
 from src.items.definitions import ITEMS
 from src.items.Pickup import Pickup
+from src.ui import interact_prompt
 
 _OPEN_FRAME_COUNT = 5  # chest.png frames 1-5, played after frame 0 (closed)
 _COST_FONT = pygame.font.Font(None, 12)
@@ -160,4 +161,12 @@ class Chest:
                 _COST_TEXT_COLOR,
                 center=True,
                 shadowed=True,
+            )
+
+        if self.can_interact():
+            interact_prompt.render(
+                surface,
+                dest.centerx,
+                dest.top - _COST_FONT.get_height() - 6,
+                [("interact", "Open")],
             )

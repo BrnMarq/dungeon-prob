@@ -13,6 +13,8 @@ MARGIN = 4
 ICON_SIZE = 32
 ICON_GAP = 2
 NUM_ABILITY_SLOTS = 4
+# Same slot order as settings.py's "Ability bar" comment/bindings.
+ABILITY_SLOT_INPUT_IDS = ["attack", "ability_2", "dash", "ability_4"]
 
 HP_BAR_HEIGHT = 8
 XP_BAR_HEIGHT = 4
@@ -219,6 +221,17 @@ class HUD:
                     center=True,
                     shadowed=True,
                 )
+
+            render_text(
+                surface,
+                settings.INPUT_KEY_LABELS[ABILITY_SLOT_INPUT_IDS[i]],
+                self.font,
+                slot_rect.centerx,
+                slot_rect.bottom - self.font.get_height() // 2,
+                theme.text_color,
+                center=True,
+                shadowed=True,
+            )
 
             pygame.draw.rect(surface, theme.border_color, slot_rect, theme.border_width)
 

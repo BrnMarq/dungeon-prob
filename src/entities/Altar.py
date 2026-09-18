@@ -33,10 +33,12 @@ import pygame
 
 import settings
 from src import render
+from src.ui import interact_prompt
 
 _ACTIVATE_FRAME_COUNT = 3  # altars.png frames 1-3, played after frame 0 (dormant)
 _OUTLINE_COLOR = pygame.Color(255, 255, 255)
 _OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
+_PROMPT_GAP = 6
 
 
 class Altar:
@@ -136,3 +138,10 @@ class Altar:
                 render.blit(surface, outline, dest.move(dx, dy))
 
         render.blit(surface, image, dest)
+
+        if self.can_interact():
+            if self.level.altar_phase == "inactive":
+                prompts = [("interact", "Activate")]
+            else:
+                prompts = [("interact", "Finish Run"), ("reset", "Reset Level")]
+            interact_prompt.render(surface, dest.centerx, dest.top - _PROMPT_GAP, prompts)
