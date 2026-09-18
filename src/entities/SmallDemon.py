@@ -7,6 +7,7 @@ from src.entities.DamageNumber import DamageNumber
 from src.entities.Entity import Entity
 from src.entities.enemy_states import (
     AttackState,
+    ClimbState,
     DeadState,
     FollowState,
     HurtState,
@@ -17,11 +18,13 @@ from src.entities.enemy_states import (
 
 class SmallDemon(Entity):
     """Ground enemy using assets/graphics/small-demon.png. Emerges via
-    SpawnState, then chases target horizontally (FollowState) and attacks
-    once it's close enough (AttackState), pausing after the attack before
-    resuming the chase. Falls back to IdleState if it has no target.
-    take_damage() interrupts whatever it's doing to play HurtState, or
-    DeadState once hp runs out.
+    SpawnState, then chases target horizontally (FollowState), jumping
+    over anything blocking its way and climbing "vines" tiles
+    (ClimbState) when the target is meaningfully above/below it, and
+    attacks once it's close enough (AttackState), pausing after the
+    attack before resuming the chase. Falls back to IdleState if it has
+    no target. take_damage() interrupts whatever it's doing to play
+    HurtState, or DeadState once hp runs out.
     """
 
     # Matches the creature's actual silhouette within its padded 100x100
@@ -54,6 +57,7 @@ class SmallDemon(Entity):
                 "spawn": lambda sm: SpawnState(self, sm),
                 "idle": lambda sm: IdleState(self, sm),
                 "follow": lambda sm: FollowState(self, sm),
+                "climb": lambda sm: ClimbState(self, sm),
                 "attack": lambda sm: AttackState(self, sm),
                 "hurt": lambda sm: HurtState(self, sm),
                 "dead": lambda sm: DeadState(self, sm),
@@ -103,6 +107,23 @@ class SmallDemon(Entity):
                 self.target.grant_xp(round(settings.DEMON_BASE_XP_REWARD * multiplier))
         else:
             self.change_state("hurt")
+
+    def can_melee_target(self) -> bool:
+        """Whether self.target is actually close enough to attack - used
+        by FollowState/ClimbState to trigger "attack", and by AttackState.
+        _land_hit to re-check at the moment the hit lands. Ground combat
+        never needed a vertical check (both combatants are always on the
+        same row there), but climbing can put the demon and its target on
+        the same vine column while genuinely far apart vertically, where
+        melee_range_rect's rect overlap alone can still (barely) clip -
+        this adds the vertical proximity ground combat got for free.
+        """
+        target = self.target
+        if target is None:
+            return False
+        if abs(target.y - self.y) > settings.DEMON_ATTACK_RANGE:
+            return False
+        return self.melee_range_rect().colliderect(target.get_collision_rect())
 
     def melee_range_rect(self) -> pygame.Rect:
         """The world-space rect FollowState checks to trigger an attack and

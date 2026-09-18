@@ -1,5 +1,5 @@
 import settings
-from src.entities.player_states.ClimbState import is_touching_climbable
+from src.entities.climbing import is_touching_climbable
 from src.entities.states.BaseEntityState import BaseEntityState
 
 

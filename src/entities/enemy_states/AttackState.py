@@ -1,4 +1,5 @@
 import settings
+from src.entities.climbing import is_touching_climbable
 from src.entities.states.BaseEntityState import BaseEntityState
 
 
@@ -32,17 +33,21 @@ class AttackState(BaseEntityState):
         self._hit_delay = self.HIT_FRAME_INDEX * animation.interval
 
     def _land_hit(self) -> None:
-        target = self.entity.target
-        if target is None:
-            return
-
-        if not self.entity.melee_range_rect().colliderect(target.get_collision_rect()):
+        if not self.entity.can_melee_target():
             return  # target moved out of range during the wind-up - miss
 
-        target.take_damage(self.entity.attack_damage)
+        self.entity.target.take_damage(self.entity.attack_damage)
 
     def update(self, dt: float) -> None:
         self.entity.vx = 0
+        # A climb (src.entities.enemy_states.ClimbState) can land the
+        # entity right in melee range mid-vine - without this, nothing
+        # here cancels gravity the way ClimbState did, and it would just
+        # free-fall for the whole attack+cooldown instead of clinging in
+        # place like it would on the ground (where on_ground/collided_y
+        # already keeps vy at 0 every frame).
+        if is_touching_climbable(self.entity):
+            self.entity.vy = 0
         self._elapsed += dt
 
         if not self._hit_landed and self._elapsed >= self._hit_delay:

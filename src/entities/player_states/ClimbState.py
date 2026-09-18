@@ -1,40 +1,6 @@
 import settings
+from src.entities.climbing import is_touching_climbable
 from src.entities.states.BaseEntityState import BaseEntityState
-
-# Same custom tile property collision_type_at reads ("solid"/"platform")
-# but a value neither of those recognizes, so climbable tiles never
-# block move_and_collide on the "ground" layer - only this module treats
-# "climbable" as meaningful, and only on the "vines" layer.
-_VINES_LAYER = "vines"
-_CLIMBABLE = "climbable"
-
-
-def is_touching_climbable(entity) -> bool:
-    """
-    :returns: Whether entity's hurtbox overlaps a "vines" tile whose
-        collision property is "climbable" - checked the same way
-        gale.tilemap.collision.collision_type_at checks "solid"/
-        "platform", just against a different layer/property value.
-    """
-    tilemap = entity.tilemap
-    min_row = max(0, int(entity.y // tilemap.tile_height))
-    max_row = min(
-        tilemap.rows - 1, int((entity.y + entity.height - 1) // tilemap.tile_height)
-    )
-    min_col = max(0, int(entity.x // tilemap.tile_width))
-    max_col = min(
-        tilemap.cols - 1, int((entity.x + entity.width - 1) // tilemap.tile_width)
-    )
-
-    for row in range(min_row, max_row + 1):
-        for col in range(min_col, max_col + 1):
-            gid = tilemap.get_gid(_VINES_LAYER, row, col)
-            if gid == 0:
-                continue
-            if tilemap.properties_of_gid(gid).get("collision") == _CLIMBABLE:
-                return True
-
-    return False
 
 
 class ClimbState(BaseEntityState):

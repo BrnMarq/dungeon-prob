@@ -1,3 +1,4 @@
+from src.entities.climbing import is_touching_climbable
 from src.entities.states.BaseEntityState import BaseEntityState
 
 
@@ -17,6 +18,10 @@ class HurtState(BaseEntityState):
 
     def update(self, dt: float) -> None:
         self.entity.vx = 0
+        # See AttackState's identical guard - a hit landed mid-climb
+        # shouldn't turn into a free-fall for the stagger's duration.
+        if is_touching_climbable(self.entity):
+            self.entity.vy = 0
         self._elapsed += dt
 
         if self._elapsed >= self._duration:

@@ -179,6 +179,14 @@ DEMON_MAX_HP = 40
 DEMON_SPAWN_MIN_DISTANCE_TILES = 4
 DEMON_SPAWN_MAX_DISTANCE_TILES = 10
 
+# Demon vine-climbing (src.entities.enemy_states.FollowState/ClimbState) -
+# reuses CLIMB_SPEED/JUMP_TAKEOFF_SPEED already tuned for the player. A
+# demon touching a climbable tile only grabs on while its target is more
+# than this many pixels above/below it, and climbing stops once it's
+# back within this same distance - so it doesn't hunt for exact pixel
+# alignment before resuming the horizontal chase.
+DEMON_CLIMB_ALIGN_THRESHOLD = 8
+
 # Overhead enemy health bar (src/ui/health_bar.py, drawn from
 # src.map.Level.render for any entity with SHOW_HEALTH_BAR = True) - only
 # rendered while hp < max_hp, red fill per the design ask.
