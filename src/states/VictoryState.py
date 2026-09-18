@@ -15,14 +15,14 @@ STAT_FONT_SIZE = 16
 SMALL_FONT_SIZE = 12
 PROMPT_FONT_SIZE = 16
 
-TITLE_Y = 40
-TIME_Y = 92
-KILLS_Y = 122
-GOLD_Y = 150
-DAMAGE_Y = 178
-ITEMS_LABEL_Y = 206
-ITEMS_ROW_Y = 232
-PROMPT_Y = 320
+TITLE_Y = 36
+TIME_Y = 84
+KILLS_Y = 128
+GOLD_Y = 172
+DAMAGE_Y = 200
+ITEMS_LABEL_Y = 226
+ITEMS_ROW_Y = 250
+PROMPT_Y = 336
 
 BACKGROUND_COLOR = pygame.Color(10, 20, 12)
 TITLE_COLOR = pygame.Color(255, 215, 90)
@@ -36,7 +36,7 @@ STAT_ICON_X = settings.VIRTUAL_WIDTH // 2 - 90
 STAT_ICON_COLUMN_WIDTH = 32
 STAT_TEXT_X = STAT_ICON_X + STAT_ICON_COLUMN_WIDTH + 8
 
-DEMON_ICON_SIZE = 28
+DEMON_ICON_SIZE = 56
 # Matches SmallDemon's own "run" animation interval (src.entities.
 # SmallDemon) - not imported from there since that value is baked into
 # an per-instance animation dict, not exposed as a reusable constant.
@@ -45,8 +45,35 @@ DEMON_RUN_FRAMES = list(range(8, 16))
 
 GOLD_ICON_SIZE = 16
 
-ITEM_ICON_SIZE = 20
+# Native item art is 16x16 (src.items.definitions.ITEMS) - composited
+# with its 1px outline (same src.render.outline/ITEM_OUTLINE_COLORS
+# treatment as src.items.Pickup.render, see _build_item_icon) onto an
+# 18x18 canvas, then scaled up together so the outline scales with the
+# icon instead of staying a flat 1px regardless of size.
+ITEM_ICON_NATIVE_SIZE = 16
+ITEM_OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
+ITEM_ICON_SCALE = 1.25
 ITEM_ICON_GAP = 6
+
+
+def _build_item_icon(texture_id: str, frame_index: int) -> pygame.Surface:
+    """Native 16x16 item art plus its 1px outline (see ITEM_ICON_SCALE's
+    comment above), scaled up as one composite so the outline stays
+    proportional to the icon instead of a flat 1px sliver next to a much
+    bigger icon.
+    """
+    canvas_size = ITEM_ICON_NATIVE_SIZE + 2
+    canvas = pygame.Surface((canvas_size, canvas_size), pygame.SRCALPHA)
+
+    image = render.sprite(texture_id, frame_index)
+    outline_color = settings.ITEM_OUTLINE_COLORS[texture_id]
+    outline = render.outline(texture_id, frame_index, outline_color)
+    for dx, dy in ITEM_OUTLINE_OFFSETS:
+        canvas.blit(outline, (1 + dx, 1 + dy))
+    canvas.blit(image, (1, 1))
+
+    display_size = round(canvas_size * ITEM_ICON_SCALE)
+    return pygame.transform.scale(canvas, (display_size, display_size))
 
 
 class VictoryState(BaseState):
@@ -80,10 +107,7 @@ class VictoryState(BaseState):
                 count = self.player.item_stacks[item_id]
                 if count <= 0:
                     continue
-                icon = pygame.transform.scale(
-                    render.sprite(item["texture_id"], item["frame_index"]),
-                    (ITEM_ICON_SIZE, ITEM_ICON_SIZE),
-                )
+                icon = _build_item_icon(item["texture_id"], item["frame_index"])
                 self.collected_items.append((icon, count))
 
     def exit(self) -> None:
@@ -182,9 +206,10 @@ class VictoryState(BaseState):
                 shadowed=True,
             )
 
-            row_width = len(self.collected_items) * (
-                ITEM_ICON_SIZE + ITEM_ICON_GAP
-            ) - ITEM_ICON_GAP
+            row_width = (
+                sum(icon.get_width() + ITEM_ICON_GAP for icon, _ in self.collected_items)
+                - ITEM_ICON_GAP
+            )
             x = settings.VIRTUAL_WIDTH // 2 - row_width // 2
             for icon, count in self.collected_items:
                 surface.blit(icon, (x, ITEMS_ROW_Y))
@@ -192,13 +217,13 @@ class VictoryState(BaseState):
                     surface,
                     f"x{count}",
                     self.small_font,
-                    x + ITEM_ICON_SIZE // 2,
-                    ITEMS_ROW_Y + ITEM_ICON_SIZE + 2,
+                    x + icon.get_width() // 2,
+                    ITEMS_ROW_Y + icon.get_height() + 2,
                     STAT_COLOR,
                     center=True,
                     shadowed=True,
                 )
-                x += ITEM_ICON_SIZE + ITEM_ICON_GAP
+                x += icon.get_width() + ITEM_ICON_GAP
 
         if self.show_prompt:
             render_text(
