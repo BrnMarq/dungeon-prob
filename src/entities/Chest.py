@@ -32,6 +32,7 @@ import pygame
 from gale.text import render_text
 
 import settings
+from src import render
 from src.items.definitions import ITEMS
 from src.items.Pickup import Pickup
 
@@ -138,22 +139,16 @@ class Chest:
         self.opening = True
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
-        texture = settings.TEXTURES["chest"]
-        frame = settings.FRAMES["chest"][self.frame_index]
-        image = pygame.Surface((frame.width, frame.height), pygame.SRCALPHA)
-        image.fill((0, 0, 0, 0))
-        image.blit(texture, (0, 0), frame)
+        image = render.sprite("chest", self.frame_index)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
 
         if self.can_interact():
-            outline = pygame.mask.from_surface(image).to_surface(
-                setcolor=_OUTLINE_COLOR, unsetcolor=(0, 0, 0, 0)
-            )
+            outline = render.outline("chest", self.frame_index, _OUTLINE_COLOR)
             for dx, dy in _OUTLINE_OFFSETS:
-                surface.blit(outline, dest.move(dx, dy))
+                render.blit(surface, outline, dest.move(dx, dy))
 
-        surface.blit(image, dest)
+        render.blit(surface, image, dest)
 
         if not self.opening and not self.opened:
             render_text(

@@ -8,6 +8,43 @@ the major version stays `0`, breaking changes can land in any release.
 
 ## [Unreleased]
 
+### Performance
+
+The play loop went from ~11 fps to comfortably past the 60 fps cap on the
+development machine (measured at 640x360 with 13 entities on screen: 86.6 ms
+per frame down to 3.6 ms, and 2.8 ms/frame over a 90-second soak peaking at
+35 entities). Frame output is unchanged except for a <=2/255 per-channel
+rounding difference on the anti-aliased edges of the scaled background
+trees - see `src/render.py`.
+
+- `src/render.py` (new): a shared sprite/outline cache and one `blit()`
+  helper that every alpha blit in the game now goes through.
+  - pygame's own per-pixel-alpha blitter has no SIMD path on some platforms
+    (arm64 macOS among them), where it runs at a flat ~6 Mpx/s regardless of
+    sprite size - a single 480x300 parallax tree cost ~23 ms there, a whole
+    frame's budget on its own. `blit()` asks for the same composite through
+    `pygame.BLEND_ALPHA_SDL2` (SDL2's own vectorised blitter) instead, ~290x
+    faster. This alone took the parallax background from 66.9 ms/frame to
+    0.7 ms.
+  - `sprite()`/`outline()` build each frame's surface once and cache it.
+    Entity `render()` methods previously rebuilt their sprite every frame
+    (allocate an `SRCALPHA` surface, clear it, blit the frame region in,
+    flip it), and `Chest`/`Altar`/`Pickup` additionally regenerated their
+    glow outline through `pygame.mask.from_surface().to_surface()` every
+    frame. Entity rendering: 5.2 ms/frame down to 0.4 ms.
+- `src/map/Level.py`: the map's tile layers are flattened into one surface
+  once at load and scrolled past the camera as a single blit, rather than
+  ~300 individual per-tile blits every frame (12.0 ms/frame down to 0.1 ms).
+  Falls back to `TileMap.render` at any zoom other than 1.
+
+### Fixed
+
+- `assets/maps/forest.json` referenced its tileset image through
+  `../../../../../Downloads/Mini Legend Starter Bundle/terrains/forest.png` -
+  a path outside the repository that only resolved on the machine the map
+  was authored on. Now points at the byte-identical `assets/graphics/forest.png`
+  already checked in, so the game runs from a fresh clone.
+
 ## [0.2.0] - 2026-09-17
 
 Two more abilities, a full 12-item stackable pickup system, a parallax
