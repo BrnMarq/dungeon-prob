@@ -55,17 +55,27 @@ class PlayState(BaseState):
         leave the player spawning inside/below it, and stored on self
         rather than only returned so _reset_level and _spawn_pillars can
         reuse the exact same point instead of re-rolling it.
+
+        Snaps to the platform at or below the point's own row (Level.
+        ground_row's start_row) rather than scanning from the top of the
+        map - this map has more than one platform stacked in the same
+        column in places, and scanning from the top would land the
+        player on whichever one happens to be topmost there, not the one
+        the point was actually placed on.
         """
         tile_width = self.level.tilemap.tile_width
+        tile_height = self.level.tilemap.tile_height
         spawn_points = self.level.tilemap.object_layers.get("spawns", [])
         if spawn_points:
             point = random.choice(spawn_points)
             center_x = point.x + point.width / 2
+            start_row = int(point.y // tile_height)
         else:
             center_x = 16
+            start_row = 0
 
         col = int(center_x // tile_width)
-        row = self.level.ground_row(col)
+        row = self.level.ground_row(col, start_row=start_row)
 
         self._spawn_center_x = center_x
         # Resting exactly on the surface, not a few pixels in, so

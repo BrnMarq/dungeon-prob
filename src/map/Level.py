@@ -54,13 +54,24 @@ class Level:
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(0, 0, self.tilemap.pixel_width, self.tilemap.pixel_height)
 
-    def ground_row(self, col: int, layer_name: str = "ground") -> Optional[int]:
+    def ground_row(
+        self, col: int, layer_name: str = "ground", start_row: int = 0
+    ) -> Optional[int]:
         """
-        :returns: The first row in col whose layer_name tile is solid or a
-        platform (see gale.tilemap.CollisionType), or None if col has no
-        collidable tile at all - for spawning something standing on ground.
+        :param start_row: Row to start scanning downward from - the top
+            of the map (0) by default. Pass a spawn point's own row to
+            snap to the platform directly beneath it instead of
+            whichever platform happens to be topmost in that column -
+            this map has several stacked in the same column in places
+            (see the vines/climbing content), so scanning from the top
+            can land you on a completely different platform than the
+            one the point was actually placed on.
+        :returns: The first row at or below start_row in col whose
+            layer_name tile is solid or a platform (see
+            gale.tilemap.CollisionType), or None if nothing collidable is
+            found there - for spawning something standing on ground.
         """
-        for row in range(self.tilemap.rows):
+        for row in range(start_row, self.tilemap.rows):
             if collision_type_at(self.tilemap, layer_name, row, col) != CollisionType.NONE:
                 return row
         return None
