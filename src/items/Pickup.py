@@ -23,6 +23,7 @@ import pygame
 
 import settings
 from src import render
+from src.entities.ItemPopup import ItemPopup
 from src.items.definitions import ITEMS
 
 _OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
@@ -60,6 +61,15 @@ class Pickup:
     def update(self, dt: float) -> None:
         if self.get_collision_rect().colliderect(self.player.get_collision_rect()):
             self.player.collect_item(self.item_id)
+            item = ITEMS[self.item_id]
+            self.level.entities.append(
+                ItemPopup(
+                    self.x + self.width / 2,
+                    self.y,
+                    item["name"],
+                    settings.ITEM_OUTLINE_COLORS[item["texture_id"]],
+                )
+            )
             self.is_dead = True
             return
 
