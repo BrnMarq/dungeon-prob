@@ -332,7 +332,9 @@ class PlayState(BaseState):
 
         if self.level.altar_choice == "final_level":
             self.level.altar_choice = None
-            self.state_machine.change("victory")
+            self.state_machine.change(
+                "victory", player=self.player, elapsed_time=self.elapsed_time
+            )
             return
         if self.level.altar_choice == "reset":
             self.level.altar_choice = None
