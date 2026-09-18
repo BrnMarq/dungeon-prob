@@ -6,10 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/) - while
 the major version stays `0`, breaking changes can land in any release.
 
-## [Unreleased] - 2026-09-17
+## [Unreleased]
+
+## [0.2.0] - 2026-09-17
 
 Two more abilities, a full 12-item stackable pickup system, a parallax
-background, and a combat VFX pass - built on top of 0.1.0's foundation.
+background, a combat VFX pass, gold/XP/leveling with named difficulty
+tiers, gold-cost chests, and an altar-driven spawn-rate buff and level
+reset loop - built on top of 0.1.0's foundation.
 
 ### Added
 
