@@ -347,7 +347,7 @@ BACKGROUND_FOREST_SCROLL_FACTOR = 0.1
 # down (aspect-preserved) so its own top edge - not a fixed row within
 # the art - lands at BACKGROUND_FOREST_TOP_RATIO of the screen height,
 # same bottom-anchoring as before.
-BACKGROUND_FOREST_TOP_RATIO = 0.05
+BACKGROUND_FOREST_TOP_RATIO = 0.01
 BACKGROUND_FOREST_HEIGHT = round(VIRTUAL_HEIGHT * (1 - BACKGROUND_FOREST_TOP_RATIO))
 BACKGROUND_HUGE_TREES_SCROLL_FACTOR = 0.3
 BACKGROUND_HUGE_TREES_HEIGHT = 300
