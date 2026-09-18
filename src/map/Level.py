@@ -76,6 +76,31 @@ class Level:
                 return row
         return None
 
+    def surface_rows(self, col: int, layer_name: str = "ground") -> List[int]:
+        """Every standable surface in a column, not just the topmost one.
+
+        ground_row only ever reports the first collidable tile at or
+        below its start_row, which makes it useless for picking *which*
+        of a column's several stacked platforms something should spawn
+        on (this map stacks them - see the vines/climbing content). A row
+        counts as a surface when its own tile is collidable and the tile
+        directly above it is not, i.e. there is open space to stand in.
+
+        :returns: Those rows, top to bottom (possibly empty).
+        """
+        rows: List[int] = []
+        for row in range(self.tilemap.rows):
+            if collision_type_at(self.tilemap, layer_name, row, col) == CollisionType.NONE:
+                continue
+            above_is_open = (
+                row == 0
+                or collision_type_at(self.tilemap, layer_name, row - 1, col)
+                == CollisionType.NONE
+            )
+            if above_is_open:
+                rows.append(row)
+        return rows
+
     def update(self, dt: float) -> None:
         for entity in self.entities:
             entity.update(dt)

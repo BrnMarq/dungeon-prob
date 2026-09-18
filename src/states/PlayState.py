@@ -1,5 +1,5 @@
 import random
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import pygame
 
@@ -107,38 +107,23 @@ class PlayState(BaseState):
         )
 
     def _spawn_demon(self) -> None:
-        """Rolls a random column at settings.DEMON_SPAWN_MIN/MAX_DISTANCE_
-        TILES from the player, alternating sides, and re-rolls (up to
-        DEMON_SPAWN_MAX_ATTEMPTS times) whenever that column has no
-        ground_row - e.g. it landed over a gap/chasm - instead of giving
-        up on the whole spawn tick, since spawn_timer has already been
-        reset by the caller and a giveup here would silently skip that
-        entire spawn_interval with nothing appearing.
+        """Spawns one demon on a standable tile that is actually on
+        screen, to either side of the player.
+
+        This used to roll a random column MIN..MAX tiles away and call
+        Level.ground_row on it, which only ever reports a column's
+        *topmost* platform - on this map that is regularly a ledge dozens
+        of rows above the player, so demons appeared out of view above
+        him and never on his sides. Instead every standable surface in
+        the candidate columns (Level.surface_rows) is checked against the
+        camera's visible rect, and the two sides are drawn from evenly so
+        one side can't starve.
         """
-        tile_width = self.level.tilemap.tile_width
-        player_col = int(self.player.x // tile_width)
-
-        spawn_col = None
-        row = None
-        for _ in range(settings.DEMON_SPAWN_MAX_ATTEMPTS):
-            distance = random.randint(
-                settings.DEMON_SPAWN_MIN_DISTANCE_TILES,
-                settings.DEMON_SPAWN_MAX_DISTANCE_TILES,
-            )
-            direction = random.choice((-1, 1))
-            col = max(
-                0, min(self.level.tilemap.cols - 1, player_col + direction * distance)
-            )
-            row = self.level.ground_row(col)
-            if row is not None:
-                spawn_col = col
-                break
-
-        if spawn_col is None:
+        position = self._pick_demon_spawn()
+        if position is None:
             return
 
-        spawn_x = spawn_col * tile_width
-        spawn_y = row * self.level.tilemap.tile_height - SmallDemon.HEIGHT
+        spawn_x, spawn_y = position
         demon = SmallDemon(
             spawn_x,
             spawn_y,
@@ -148,6 +133,106 @@ class PlayState(BaseState):
             damage_multiplier=self.current_tier["enemy_damage_multiplier"],
         )
         self.level.entities.append(demon)
+
+    def _visible_rect(self) -> pygame.Rect:
+        """
+        :returns: The world-space rect the camera is currently showing,
+            inset by DEMON_SPAWN_VIEW_MARGIN so a spawn that only just
+            fits doesn't end up flush against the screen edge.
+        """
+        offset_x, offset_y = self.camera.offset
+        view = pygame.Rect(
+            round(offset_x),
+            round(offset_y),
+            round(settings.VIRTUAL_WIDTH / self.camera.zoom),
+            round(settings.VIRTUAL_HEIGHT / self.camera.zoom),
+        )
+        margin = settings.DEMON_SPAWN_VIEW_MARGIN
+        return view.inflate(-2 * margin, -2 * margin)
+
+    def _pick_demon_spawn(self) -> Optional[Tuple[float, float]]:
+        """
+        :returns: The top-left world position for a new demon, or None
+            when nothing suitable exists this tick (e.g. the player is
+            hemmed in by chasms on both sides).
+
+        Candidates are every standable surface (Level.surface_rows) in
+        the columns DEMON_SPAWN_MIN/MAX_DISTANCE_TILES away on either
+        side whose demon-sized rect fits fully inside the visible rect.
+        Surfaces within DEMON_SPAWN_MAX_HEIGHT_DIFF_TILES of the player's
+        own feet are preferred - those read as "next to him" and are
+        reachable on foot - and the ones merely on screen are only used
+        when no such surface exists. Falling back further, to the first
+        ground at or below the player's row (rather than the map's
+        topmost platform), keeps a spawn tick from silently doing nothing
+        in a spot the camera can't cover.
+        """
+        tile_width = self.level.tilemap.tile_width
+        tile_height = self.level.tilemap.tile_height
+        cols = self.level.tilemap.cols
+
+        player_col = int(self.player.x // tile_width)
+        player_row = int((self.player.y + Player.HEIGHT) // tile_height)
+        view = self._visible_rect()
+
+        # direction -> positions, kept apart so each side is equally
+        # likely no matter how many standable tiles it happens to offer.
+        nearby: Dict[int, list] = {-1: [], 1: []}
+        on_screen: Dict[int, list] = {-1: [], 1: []}
+
+        for distance in range(
+            settings.DEMON_SPAWN_MIN_DISTANCE_TILES,
+            settings.DEMON_SPAWN_MAX_DISTANCE_TILES + 1,
+        ):
+            for direction in (-1, 1):
+                col = player_col + direction * distance
+                if not 0 <= col < cols:
+                    continue
+                x = col * tile_width
+                for row in self.level.surface_rows(col):
+                    y = row * tile_height - SmallDemon.HEIGHT
+                    rect = pygame.Rect(x, y, SmallDemon.WIDTH, SmallDemon.HEIGHT)
+                    if not view.contains(rect):
+                        continue
+                    if (
+                        abs(row - player_row)
+                        <= settings.DEMON_SPAWN_MAX_HEIGHT_DIFF_TILES
+                    ):
+                        nearby[direction].append((x, y))
+                    else:
+                        on_screen[direction].append((x, y))
+
+        for buckets in (nearby, on_screen):
+            sides = [positions for positions in buckets.values() if positions]
+            if sides:
+                return random.choice(random.choice(sides))
+
+        return self._fallback_demon_spawn(player_col, player_row)
+
+    def _fallback_demon_spawn(
+        self, player_col: int, player_row: int
+    ) -> Optional[Tuple[float, float]]:
+        """Off-screen last resort: the old random-column roll, but
+        scanning down from the player's own row so the demon lands on the
+        platform level with him rather than the column's topmost one.
+        """
+        tile_width = self.level.tilemap.tile_width
+        for _ in range(settings.DEMON_SPAWN_MAX_ATTEMPTS):
+            distance = random.randint(
+                settings.DEMON_SPAWN_MIN_DISTANCE_TILES,
+                settings.DEMON_SPAWN_MAX_DISTANCE_TILES,
+            )
+            direction = random.choice((-1, 1))
+            col = max(
+                0, min(self.level.tilemap.cols - 1, player_col + direction * distance)
+            )
+            row = self.level.ground_row(col, start_row=max(0, player_row - 1))
+            if row is not None:
+                return (
+                    col * tile_width,
+                    row * self.level.tilemap.tile_height - SmallDemon.HEIGHT,
+                )
+        return None
 
     def _spawn_chests(self) -> None:
         """One Chest per randomly-chosen point in the map's "chests"

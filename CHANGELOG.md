@@ -39,6 +39,24 @@ trees - see `src/render.py`.
 
 ### Fixed
 
+- Demons spawned on terrain far above the player and never at his sides.
+  `PlayState._spawn_demon` rolled one random column 4-10 tiles away and
+  asked `Level.ground_row` for its ground, but `ground_row` scans from row
+  0 down and so always reports a column's *topmost* platform - on this
+  125-row map regularly a ledge dozens of rows up, well outside the
+  camera's ~11 tiles of vertical view. Replaced by
+  `PlayState._pick_demon_spawn`, which collects every standable surface
+  (new `Level.surface_rows`) in the candidate columns on *both* sides,
+  keeps only those whose demon-sized rect fits inside the camera's visible
+  rect (inset by `settings.DEMON_SPAWN_VIEW_MARGIN`), prefers surfaces
+  within `settings.DEMON_SPAWN_MAX_HEIGHT_DIFF_TILES` of the player's own
+  feet, and draws the two sides evenly so neither starves. The old
+  random-column roll survives as `_fallback_demon_spawn` for the case where
+  nothing on screen is standable at all, now scanning down from the
+  player's row instead of the map's top. Measured over 9,375 spawn rolls
+  from 375 player positions across the map: 0 off-screen, 0 skipped ticks,
+  every spawn within 4 tiles of the player's elevation, sides split
+  4652/4723.
 - `assets/maps/forest.json` referenced its tileset image through
   `../../../../../Downloads/Mini Legend Starter Bundle/terrains/forest.png` -
   a path outside the repository that only resolved on the machine the map

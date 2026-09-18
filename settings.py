@@ -172,17 +172,26 @@ DEMON_ATTACK_COOLDOWN = 0.6
 DEMON_ATTACK_DAMAGE = 10
 DEMON_MAX_HP = 40
 
-# Periodic random spawning - src.states.PlayState._spawn_demon. One demon
-# spawns on solid ground somewhere between MIN and MAX tile columns away
-# from the player (randomly to either side) every spawn_interval seconds
-# - no cap on how many can be active at once - driven by the current
-# difficulty tier (see DIFFICULTY_TIERS below) rather than a flat constant.
+# Periodic random spawning - src.states.PlayState._pick_demon_spawn. One
+# demon spawns on a standable tile between MIN and MAX tile columns away
+# from the player, on either side, every spawn_interval seconds - no cap
+# on how many can be active at once - driven by the current difficulty
+# tier (see DIFFICULTY_TIERS below) rather than a flat constant.
 DEMON_SPAWN_MIN_DISTANCE_TILES = 4
 DEMON_SPAWN_MAX_DISTANCE_TILES = 10
-# PlayState._spawn_demon re-rolls a fresh column up to this many times
-# before giving up on a spawn tick - the first roll often lands over a
-# gap/chasm with no ground_row, which used to just silently skip that
-# whole spawn_interval.
+# How far above/below the player's own feet row a surface may be and
+# still count as "beside him". Candidates further off vertically are
+# only used when nothing closer is on screen. The camera shows
+# VIRTUAL_HEIGHT / 2 = 180px (about 11 tiles) above and below the
+# player, so this stays well inside the view and, just as importantly,
+# within reach on foot.
+DEMON_SPAWN_MAX_HEIGHT_DIFF_TILES = 4
+# Pixels a spawn is kept clear of the visible rect's edges, so demons
+# don't pop in flush against (or half over) the screen border.
+DEMON_SPAWN_VIEW_MARGIN = 8
+# PlayState._fallback_demon_spawn re-rolls a fresh column up to this many
+# times before giving up on a spawn tick - only reached when nothing on
+# screen is standable at all, e.g. chasms on both sides.
 DEMON_SPAWN_MAX_ATTEMPTS = 5
 
 # Demon vine-climbing (src.entities.enemy_states.FollowState/ClimbState) -
