@@ -326,6 +326,10 @@ class PlayState(BaseState):
         self.player.interact_requested = False
         self.player.reset_requested = False
 
+        if self.player.hp <= 0:
+            self.state_machine.change("game_over")
+            return
+
         if self.level.altar_choice == "final_level":
             self.level.altar_choice = None
             self.state_machine.change("victory")
