@@ -360,6 +360,7 @@ class PlayState(BaseState):
             self.level.altar_buff_timer = max(0.0, self.level.altar_buff_timer - dt)
             if self.level.altar_buff_timer <= 0:
                 self.level.altar_phase = "ended"
+                play_music("playing")
 
         # Demon spawning stops entirely once the altar's buff has ended,
         # until the player picks an option back at the altar.

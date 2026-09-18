@@ -61,6 +61,7 @@ class Pickup:
     def update(self, dt: float) -> None:
         if self.get_collision_rect().colliderect(self.player.get_collision_rect()):
             self.player.collect_item(self.item_id)
+            settings.SOUNDS["item_pickup"].play()
             item = ITEMS[self.item_id]
             self.level.entities.append(
                 ItemPopup(
