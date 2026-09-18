@@ -30,6 +30,9 @@ input_handler.InputHandler.set_keyboard_action(
 )
 # Chest purchase (src.entities.Chest) - press near a closed chest to buy.
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_f, "interact")
+# Reset-the-level choice at an altar once its buff has ended
+# (src.entities.Altar, src.states.PlayState._reset_level).
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_g, "reset")
 
 # Ability bar - Q/W/E/R map straight to HUD slots 1-4 (src.ui.HUD). Q and E
 # are wired to real abilities below; W/R are reserved action ids with
@@ -433,6 +436,9 @@ TEXTURES = {
     # 96x16 - six 16x16 frames (src.entities.Chest): frame 0 closed, the
     # remaining 5 the opening animation, ending on the fully-open frame.
     "chest": pygame.image.load(BASE_DIR / "assets" / "graphics" / "chest.png"),
+    # 320x80 - four 80x80 frames (src.entities.Altar): frame 0 dormant,
+    # the remaining 3 the activation animation, ending on the active frame.
+    "altars": pygame.image.load(BASE_DIR / "assets" / "graphics" / "altars.png"),
 }
 
 # The single pixel in background.png is the parallax background's sky
@@ -462,6 +468,7 @@ FRAMES = {
     "blade_effects": frames.generate_frames(TEXTURES["blade_effects"], 40, 48),
     "gold_icon": frames.generate_frames(TEXTURES["gold_icon"], 32, 32),
     "chest": frames.generate_frames(TEXTURES["chest"], 16, 16),
+    "altars": frames.generate_frames(TEXTURES["altars"], 80, 80),
 }
 
 # src.ui.HUD - seconds each gold_icon coin-spin frame holds for.
@@ -486,6 +493,22 @@ CHEST_OPEN_FRAME_INTERVAL = 0.08
 # decide later whether it's worth coming back for, instead of it
 # appearing (and likely auto-collecting) the instant the chest opens.
 CHEST_ITEM_REVEAL_DELAY = 0.3
+
+# Altar (src.entities.Altar, assets/graphics/altars.png) - one spawns per
+# map, at a random point from the map's "altars" object layer (a set of
+# possible spawn points, just like chests). Free to activate (press
+# "interact" while touching it, no gold cost) - one-time only, then plays
+# its 3-frame activation animation and stays on the final frame
+# permanently. Activating starts a run-wide ALTAR_BUFF_DURATION-second
+# buff (src.states.PlayState) that multiplies the current difficulty
+# tier's spawn_interval by ALTAR_SPAWN_INTERVAL_MULTIPLIER (monsters show
+# up roughly twice as often), with the remaining seconds displayed above
+# the player's head the whole time.
+ALTAR_BUFF_DURATION = 90.0
+ALTAR_SPAWN_INTERVAL_MULTIPLIER = 0.5
+# 3 activation frames (indices 1-3) played at this interval before
+# settling on the last one permanently.
+ALTAR_ACTIVATE_FRAME_INTERVAL = 0.15
 
 # src.entities.HitEffect - seconds each of its 4 frames holds for (a
 # quick flash - the whole animation plays out in 4x this, well under the

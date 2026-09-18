@@ -27,6 +27,22 @@ class Level:
         # kill rewards (see src.entities.SmallDemon.take_damage), kept
         # updated by src.states.PlayState.update as play time elapses.
         self.difficulty_tier = settings.DIFFICULTY_TIERS[0]
+        # Seconds remaining on the altar's spawn-rate buff (0 outside the
+        # "active" phase below) - set by src.entities.Altar on activation,
+        # ticked down and acted on by src.states.PlayState.update, and
+        # read by Player.render to show the countdown above the player's
+        # head.
+        self.altar_buff_timer = 0.0
+        # The altar's lifecycle - "inactive" (dormant) -> "activating"
+        # (wind-up animation) -> "active" (buff running, no spawning
+        # changes besides the rate) -> "ended" (buff ran out - demon
+        # spawning stops entirely until the player picks an option at the
+        # altar). See src.entities.Altar and src.states.PlayState.
+        self.altar_phase = "inactive"
+        # Set by src.entities.Altar while altar_phase is "ended" -
+        # "final_level" or "reset" - and acted on then cleared by
+        # src.states.PlayState.update the same frame.
+        self.altar_choice = None
 
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(0, 0, self.tilemap.pixel_width, self.tilemap.pixel_height)

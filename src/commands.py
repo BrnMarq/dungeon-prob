@@ -67,6 +67,11 @@ class InteractCommand(Command):
         receiver.interact_requested = True
 
 
+class ResetCommand(Command):
+    def execute(self, receiver, dt: float = 0.0) -> None:
+        receiver.reset_requested = True
+
+
 MOVE_LEFT = MoveLeftCommand()
 MOVE_RIGHT = MoveRightCommand()
 STOP_MOVE_LEFT = StopMoveLeftCommand()
@@ -77,3 +82,4 @@ ATTACK = AttackCommand()
 THROW = ThrowCommand()
 RAGE = RageCommand()
 INTERACT = InteractCommand()
+RESET = ResetCommand()

@@ -133,13 +133,43 @@ background, and a combat VFX pass - built on top of 0.1.0's foundation.
   every point gets a chest each run. Duck-typed like `Pickup`, but static
   and interact-based rather than touch-based: pressing the new `interact`
   action (`F`, `src.commands.InteractCommand`, `Player.interact_requested`)
-  while touching a closed chest the player can afford
-  (`settings.CHEST_BASE_COST` scaled by the current difficulty tier's
-  `reward_multiplier`) deducts the gold and calls `Player.collect_item`
-  with a random item - 90% common (`ITEMS` entries with `texture_id`
+  while touching a closed chest the player can afford deducts the gold
+  and rolls a random item - 90% common (`ITEMS` entries with `texture_id`
   `"items"`), 10% rare (`"red_items"`, `settings.CHEST_RED_ITEM_CHANCE`) -
-  then plays `assets/graphics/chest.png`'s 5-frame opening animation and
-  settles on the open frame permanently.
+  then plays `assets/graphics/chest.png`'s 5-frame opening animation.
+  Cost (`settings.CHEST_BASE_COST` scaled by whatever difficulty tier was
+  current the moment the chest spawned) renders above it while closed,
+  with a white outline (same silhouette technique as item pickups)
+  whenever the player is in range and can afford it. The rolled item
+  isn't handed over immediately - `settings.CHEST_ITEM_REVEAL_DELAY`
+  seconds after the lid finishes opening, it spawns as a real `Pickup`
+  above the chest instead, so it's visible and the player can decide
+  whether to walk over and collect it rather than it being forced on them
+  the instant the chest opens.
+- Altar: `src/entities/Altar.py`, one per map (unlike chests) at a random
+  point from the map's new `"altars"` Tiled object layer, anchored by its
+  own art's feet (`Altar.spawn_position`/`ART_BOTTOM`/`ART_CENTER_X`) to
+  the real ground row under it rather than the raw object-layer point, so
+  it stands on the ground instead of floating or sinking into it. Its
+  whole lifecycle lives on the shared `Level` (`altar_phase`,
+  `altar_buff_timer`, `altar_choice`) rather than on the Altar instance,
+  since a level reset (below) replaces the object outright: `"inactive"`
+  (dormant, white-outlined like a chest when in range) → `"activating"`
+  (`interact`, plays `assets/graphics/altars.png`'s 3-frame animation) →
+  `"active"` (a `settings.ALTAR_BUFF_DURATION`-second, 90s, run-wide buff
+  that multiplies the current difficulty tier's `spawn_interval` by
+  `settings.ALTAR_SPAWN_INTERVAL_MULTIPLIER` - roughly twice as many
+  demons - with the remaining seconds shown above the player's head via
+  `Player.render`) → `"ended"` once the buff runs out, at which point
+  demon spawning stops entirely (`PlayState.update`) until the player
+  returns to the altar and picks `interact` (moves to the not-yet-built
+  final level - forwards to the existing `VictoryState` stub for now) or
+  the new `reset` action (`G`, `src.commands.ResetCommand`,
+  `Player.reset_requested`): `PlayState._reset_level` clears and
+  respawns the map's chests/altar (fresh chests cost more, since their
+  cost is set from whatever the current difficulty tier now is) and
+  moves the player back to the start, but leaves run time, difficulty
+  tier, and all player stats (gold, xp, level, items, hp) untouched.
 
 ### Changed
 

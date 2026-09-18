@@ -7,6 +7,7 @@ from gale.camera import Camera
 from gale.input_handler import InputData
 
 import settings
+from src.entities.Altar import Altar
 from src.entities.Chest import Chest
 from src.entities.Player import Player
 from src.entities.SmallDemon import SmallDemon
@@ -44,6 +45,7 @@ class PlayState(BaseState):
 
         self.hud = HUD(self.player)
         self._spawn_chests()
+        self._spawn_altar()
 
     def _spawn_demon(self) -> None:
         active_demons = sum(
@@ -94,6 +96,60 @@ class PlayState(BaseState):
                 Chest(point.x, point.y, self.player, self.level)
             )
 
+    def _spawn_altar(self) -> None:
+        """One Altar (unlike chests, always exactly one) at a random point
+        from the map's "altars" object layer. altars.png (80x80) is much
+        bigger than the layer's own 16x16 points, and trusting the point's
+        y directly (like the same-sized chests do) leaves it floating or
+        sunk into the ground the moment the point isn't pixel-exact on a
+        tile boundary. Instead, like the player/demon spawns, the actual
+        ground row under the point's horizontal center is looked up via
+        Level.ground_row, and Altar.spawn_position anchors the sprite's
+        own art (not its padded cell's raw edges - see Altar.ART_BOTTOM/
+        ART_CENTER_X) to that row's surface, centered on the point.
+        """
+        spawn_points = self.level.tilemap.object_layers.get("altars", [])
+        if not spawn_points:
+            return
+        point = random.choice(spawn_points)
+
+        tile_width = self.level.tilemap.tile_width
+        center_x = point.x + point.width / 2
+        col = int(center_x // tile_width)
+        row = self.level.ground_row(col)
+        if row is None:
+            return
+
+        ground_surface_y = row * self.level.tilemap.tile_height
+        x, y = Altar.spawn_position(center_x, ground_surface_y)
+        self.level.entities.append(Altar(x, y, self.player, self.level))
+
+    def _reset_level(self) -> None:
+        """Chosen at the altar once its buff has ended (level.altar_choice
+        == "reset") - regenerates the map's contents (fresh chests, at
+        whatever the current difficulty tier's reward_multiplier now
+        costs; a fresh dormant Altar; the player back at the start) but
+        leaves run time, difficulty tier, and all player stats (gold, xp,
+        level, items, hp) untouched, since this is a "descend deeper,
+        same run" choice, not a new game.
+        """
+        spawn_col = 16 // self.level.tilemap.tile_width
+        spawn_row = self.level.ground_row(spawn_col)
+        self.player.x = 16
+        self.player.y = spawn_row * self.level.tilemap.tile_height - Player.HEIGHT
+        self.player.vx = 0
+        self.player.vy = 0
+
+        self.level.entities = [self.player]
+        self.level.altar_phase = "inactive"
+        self.level.altar_buff_timer = 0.0
+        self.spawn_timer = 0.0
+        self._spawn_chests()
+        self._spawn_altar()
+
+        self.camera.x, self.camera.y = self.player.x, self.player.y
+        self.camera.update(0)
+
     def exit(self) -> None:
         pass
 
@@ -103,10 +159,20 @@ class PlayState(BaseState):
     def update(self, dt: float) -> None:
         self.camera.update(dt)
         self.level.update(dt)
-        # Consumed by at most one Chest.update() above this frame (or by
-        # none, if nothing was in range) - a single press should never
-        # carry over and auto-trigger a chest reached on some later frame.
+        # Consumed by at most one Chest/Altar.update() above this frame (or
+        # by none, if nothing was in range) - a single press should never
+        # carry over and auto-trigger something reached on some later frame.
         self.player.interact_requested = False
+        self.player.reset_requested = False
+
+        if self.level.altar_choice == "final_level":
+            self.level.altar_choice = None
+            self.state_machine.change("victory")
+            return
+        if self.level.altar_choice == "reset":
+            self.level.altar_choice = None
+            self._reset_level()
+            return
 
         self.elapsed_time += dt
         # DIFFICULTY_TIERS is sorted ascending by start_time - the last one
@@ -120,10 +186,21 @@ class PlayState(BaseState):
         self.hud.difficulty_tier_name = self.current_tier["name"]
         self.hud.difficulty_tier_color = self.current_tier["color"]
 
-        self.spawn_timer -= dt
-        if self.spawn_timer <= 0:
-            self.spawn_timer = self.current_tier["spawn_interval"]
-            self._spawn_demon()
+        if self.level.altar_phase == "active":
+            self.level.altar_buff_timer = max(0.0, self.level.altar_buff_timer - dt)
+            if self.level.altar_buff_timer <= 0:
+                self.level.altar_phase = "ended"
+
+        # Demon spawning stops entirely once the altar's buff has ended,
+        # until the player picks an option back at the altar.
+        if self.level.altar_phase != "ended":
+            self.spawn_timer -= dt
+            if self.spawn_timer <= 0:
+                spawn_interval = self.current_tier["spawn_interval"]
+                if self.level.altar_phase == "active":
+                    spawn_interval *= settings.ALTAR_SPAWN_INTERVAL_MULTIPLIER
+                self.spawn_timer = spawn_interval
+                self._spawn_demon()
 
     def render(self, surface: pygame.Surface) -> None:
         self.level.render(surface, self.camera)

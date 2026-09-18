@@ -8,6 +8,7 @@ import pygame
 
 from gale.command import CommandBindings
 from gale.input_handler import InputData
+from gale.text import render_text
 
 import settings
 from src.commands import (
@@ -18,6 +19,7 @@ from src.commands import (
     MOVE_LEFT,
     MOVE_RIGHT,
     RAGE,
+    RESET,
     STOP_MOVE_LEFT,
     STOP_MOVE_RIGHT,
     THROW,
@@ -46,6 +48,8 @@ from src.items.definitions import (
     ITEM_SHIELD,
     ITEM_SOUL_BOX,
 )
+
+_ALTAR_TIMER_FONT = pygame.font.Font(None, 12)
 
 
 class Player(Entity):
@@ -120,6 +124,7 @@ class Player(Entity):
         self.rage_requested = False
         self.rage_cooldown_timer = 0.0
         self.interact_requested = False
+        self.reset_requested = False
         self.invincible_timer = 0.0
         self.item_stacks: Counter = Counter()
         self.bonus_damage_from_kills = 0.0
@@ -136,6 +141,7 @@ class Player(Entity):
         self.command_bindings.bind("ability_2", press=THROW)
         self.command_bindings.bind("ability_4", press=RAGE)
         self.command_bindings.bind("interact", press=INTERACT)
+        self.command_bindings.bind("reset", press=RESET)
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         self.command_bindings.dispatch(self, input_id, input_data)
@@ -154,6 +160,31 @@ class Player(Entity):
     @property
     def is_invincible(self) -> bool:
         return self.invincible_timer > 0
+
+    def render(self, surface: pygame.Surface, camera) -> None:
+        """Draws the normal sprite, then - while the altar's buff is
+        active (src.entities.Altar, self.level.altar_buff_timer) - a
+        "seconds/ALTAR_BUFF_DURATION" countdown above the head, read
+        straight off the shared Level rather than duplicated as a Player
+        timer, since PlayState.update is what actually owns/decrements it.
+        """
+        super().render(surface, camera)
+
+        if self.level.altar_buff_timer <= 0:
+            return
+
+        dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
+        seconds_remaining = math.ceil(self.level.altar_buff_timer)
+        render_text(
+            surface,
+            f"{seconds_remaining}/{int(settings.ALTAR_BUFF_DURATION)}",
+            _ALTAR_TIMER_FONT,
+            dest.centerx,
+            dest.top - _ALTAR_TIMER_FONT.get_height(),
+            settings.RUN_TIMER_TEXT_COLOR,
+            center=True,
+            shadowed=True,
+        )
 
     def collect_item(self, item_id: str) -> None:
         """Called by src.items.Pickup.update on touch - bumps the stack
