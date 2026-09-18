@@ -158,8 +158,10 @@ SWORD_EXPLOSION_DAMAGE = 20
 SWORD_EXPLOSION_PARTICLE_COUNT = 24
 SWORD_EXPLOSION_COLOR = pygame.Color(20, 20, 20, 255)
 
-# Used by src.entities.enemy_states.FollowState/AttackState.
-DEMON_SPEED = 40
+# Used by src.entities.enemy_states.FollowState/AttackState - close to
+# the player's own PLAYER_SPEED so a chase is genuinely threatening
+# rather than something you can just outwalk.
+DEMON_SPEED = round(PLAYER_SPEED * 0.95)
 DEMON_ATTACK_RANGE = 24
 # How long the demon stands idle after its attack animation finishes before
 # resuming the chase - on top of the attack animation's own runtime.
@@ -172,10 +174,9 @@ DEMON_MAX_HP = 40
 
 # Periodic random spawning - src.states.PlayState._spawn_demon. One demon
 # spawns on solid ground somewhere between MIN and MAX tile columns away
-# from the player (randomly to either side) every spawn_interval seconds,
-# as long as fewer than max_active are already alive - both now driven by
-# the current difficulty tier (see DIFFICULTY_TIERS below) rather than
-# flat constants.
+# from the player (randomly to either side) every spawn_interval seconds
+# - no cap on how many can be active at once - driven by the current
+# difficulty tier (see DIFFICULTY_TIERS below) rather than a flat constant.
 DEMON_SPAWN_MIN_DISTANCE_TILES = 4
 DEMON_SPAWN_MAX_DISTANCE_TILES = 10
 
@@ -229,12 +230,13 @@ DEMON_BASE_XP_REWARD = 10
 # whose start_time <= elapsed play time, and holds there once past the
 # final tier's start_time) - src.ui.HUD displays the current tier's name
 # (and tints it plus the run timer's fill bar with "color") next to the
-# run timer sign. Each tier's spawn_interval/max_active replace settings.
-# DEMON_SPAWN_INTERVAL/DEMON_MAX_ACTIVE for PlayState._spawn_demon, and
-# enemy_hp_multiplier/enemy_damage_multiplier scale a newly spawned
-# SmallDemon's max_hp/attack_damage - existing demons don't retroactively
-# get stronger when a tier changes. "color" ramps calm green -> yellow ->
-# orange -> intense red, reading progressively scarier as it climbs.
+# run timer sign. Each tier's spawn_interval replaces settings.
+# DEMON_SPAWN_INTERVAL for PlayState._spawn_demon (no cap on how many
+# demons can be active at once), and enemy_hp_multiplier/
+# enemy_damage_multiplier scale a newly spawned SmallDemon's max_hp/
+# attack_damage - existing demons don't retroactively get stronger when
+# a tier changes. "color" ramps calm green -> yellow -> orange -> intense
+# red, reading progressively scarier as it climbs.
 DIFFICULTY_TIERS = [
     {
         "name": "Easy",
@@ -243,7 +245,6 @@ DIFFICULTY_TIERS = [
         "enemy_hp_multiplier": 1.0,
         "enemy_damage_multiplier": 1.0,
         "spawn_interval": 4.0,
-        "max_active": 5,
         "color": pygame.Color(90, 200, 90),
     },
     {
@@ -253,7 +254,6 @@ DIFFICULTY_TIERS = [
         "enemy_hp_multiplier": 1.3,
         "enemy_damage_multiplier": 1.2,
         "spawn_interval": 3.0,
-        "max_active": 7,
         "color": pygame.Color(230, 200, 90),
     },
     {
@@ -263,7 +263,6 @@ DIFFICULTY_TIERS = [
         "enemy_hp_multiplier": 1.6,
         "enemy_damage_multiplier": 1.4,
         "spawn_interval": 2.5,
-        "max_active": 9,
         "color": pygame.Color(230, 130, 40),
     },
     {
@@ -273,7 +272,6 @@ DIFFICULTY_TIERS = [
         "enemy_hp_multiplier": 2.0,
         "enemy_damage_multiplier": 1.6,
         "spawn_interval": 2.0,
-        "max_active": 12,
         "color": pygame.Color(220, 30, 30),
     },
 ]

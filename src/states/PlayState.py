@@ -104,12 +104,6 @@ class PlayState(BaseState):
         )
 
     def _spawn_demon(self) -> None:
-        active_demons = sum(
-            1 for entity in self.level.entities if isinstance(entity, SmallDemon)
-        )
-        if active_demons >= self.current_tier["max_active"]:
-            return
-
         tile_width = self.level.tilemap.tile_width
         player_col = int(self.player.x // tile_width)
         distance = random.randint(
