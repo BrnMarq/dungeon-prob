@@ -38,6 +38,8 @@ from src.items.Pickup import Pickup
 _OPEN_FRAME_COUNT = 5  # chest.png frames 1-5, played after frame 0 (closed)
 _COST_FONT = pygame.font.Font(None, 12)
 _COST_TEXT_COLOR = pygame.Color(230, 200, 90)
+_OUTLINE_COLOR = pygame.Color(255, 255, 255)
+_OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 
 class Chest:
@@ -76,6 +78,14 @@ class Chest:
 
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
+
+    def can_interact(self) -> bool:
+        return (
+            not self.opening
+            and not self.opened
+            and self.get_collision_rect().colliderect(self.player.get_collision_rect())
+            and self.player.gold >= self.cost
+        )
 
     def _roll_item(self) -> str:
         texture_id = (
@@ -116,13 +126,10 @@ class Chest:
                     )
             return
 
-        if not self.get_collision_rect().colliderect(self.player.get_collision_rect()):
-            return
-
         if not self.player.interact_requested:
             return
 
-        if self.player.gold < self.cost:
+        if not self.can_interact():
             return
 
         self.player.interact_requested = False
@@ -138,6 +145,14 @@ class Chest:
         image.blit(texture, (0, 0), frame)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
+
+        if self.can_interact():
+            outline = pygame.mask.from_surface(image).to_surface(
+                setcolor=_OUTLINE_COLOR, unsetcolor=(0, 0, 0, 0)
+            )
+            for dx, dy in _OUTLINE_OFFSETS:
+                surface.blit(outline, dest.move(dx, dy))
+
         surface.blit(image, dest)
 
         if not self.opening and not self.opened:
