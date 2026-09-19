@@ -15,7 +15,7 @@ the white outline already baked into the art - so it reads as a glow
 even against similarly-colored backgrounds.
 """
 
-from typing import Any, TypeVar
+from typing import Any, Dict, TypeVar
 
 import math
 
@@ -54,6 +54,9 @@ class Pickup:
 
         self.base_y = y
         self.float_elapsed = 0.0
+
+    def to_save_dict(self) -> Dict[str, Any]:
+        return {"x": self.x, "base_y": self.base_y, "item_id": self.item_id}
 
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)

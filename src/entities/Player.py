@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import Optional, Tuple, TypeVar
+from typing import Any, Dict, Optional, Tuple, TypeVar
 
 import math
 import random
@@ -308,6 +308,46 @@ class Player(Entity):
             )
             self.max_hp += settings.PLAYER_LEVEL_UP_HP_BONUS
             self.bonus_damage_from_level += settings.PLAYER_LEVEL_UP_DAMAGE_BONUS
+
+    def to_save_dict(self) -> Dict[str, Any]:
+        """Everything src.states.PlayState.get_save_data needs to
+        reconstruct this player on load - see apply_save_dict.
+        """
+        return {
+            "x": self.x,
+            "y": self.y,
+            "hp": self.hp,
+            "max_hp": self.max_hp,
+            "xp": self.xp,
+            "xp_to_next_level": self.xp_to_next_level,
+            "level_num": self.level_num,
+            "gold": self.gold,
+            "item_stacks": dict(self.item_stacks),
+            "bonus_damage_from_kills": self.bonus_damage_from_kills,
+            "bonus_damage_from_level": self.bonus_damage_from_level,
+            "kills_count": self.kills_count,
+            "total_damage_dealt": self.total_damage_dealt,
+            "flipped": self.flipped,
+        }
+
+    def apply_save_dict(self, data: Dict[str, Any]) -> None:
+        """Overlays a to_save_dict() snapshot onto an already-constructed
+        Player (see PlayState._load_from_save_data) - called right after
+        the normal constructor, so every other field (animations,
+        command bindings, cooldowns) is already set up fresh/neutral.
+        """
+        self.hp = data["hp"]
+        self.max_hp = data["max_hp"]
+        self.xp = data["xp"]
+        self.xp_to_next_level = data["xp_to_next_level"]
+        self.level_num = data["level_num"]
+        self.gold = data["gold"]
+        self.item_stacks = Counter(data["item_stacks"])
+        self.bonus_damage_from_kills = data["bonus_damage_from_kills"]
+        self.bonus_damage_from_level = data["bonus_damage_from_level"]
+        self.kills_count = data["kills_count"]
+        self.total_damage_dealt = data["total_damage_dealt"]
+        self.flipped = data["flipped"]
 
     def maybe_trigger_samurai_burst(self) -> None:
         """Samurai sword's stacks - called after any landed hit (melee,

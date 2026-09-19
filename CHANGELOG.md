@@ -8,6 +8,33 @@ the major version stays `0`, breaking changes can land in any release.
 
 ## [Unreleased]
 
+### Added
+
+- Pause menu (`Esc`, `src/states/PauseMenuState.py`) with Resume/Save/Load/Quit,
+  replacing `Esc`'s old instant-quit behavior. Pushed/popped from a
+  `gale.state.StateStack` owned by `src.Game.DungeonProb` (`pause_stack`) -
+  while it's open, `Game.update` skips the main `gale.state.StateMachine`
+  entirely (freezing whichever top-level screen is underneath) and
+  `Game.render` draws the menu on top of that frozen frame. Reachable from
+  every screen (title/play/game_over/victory), not just mid-run: Save is
+  only enabled while actually in `PlayState`, Load works from anywhere and
+  fully replaces whatever was showing with the loaded run.
+  - Full-fidelity single-slot save/load (`settings.SAVE_SLOT`,
+    `gale.save.SaveManager`) via new `to_save_dict`/`apply_save_dict` pairs
+    on `Player`, `SmallDemon`, and `Chest`, plus `Pickup.to_save_dict` and
+    `PlayState.get_save_data`/`PlayState._load_from_save_data` (a new
+    `save_data=` `PlayState.enter()` path). Captures the player's full
+    stats/position, every live demon (hp, position, reconstructed straight
+    into `FollowState`, skipping its spawn animation), every chest (cost,
+    open/opening state, its pending item roll), every dropped-but-
+    uncollected `Pickup`, and the altar's `Level.altar_phase`/
+    `altar_buff_timer`. Short-lived VFX/projectiles (`DamageNumber`,
+    `HitEffect`, `ShadowExplosion`, `ItemPopup`, an in-flight `ThrownSword`)
+    and the cosmetic spawn-flanking pillars aren't saved - the pillars are
+    simply regenerated from the saved spawn point on load.
+  - `src/states/PauseState.py`, an unreachable stub nothing ever
+    transitioned to, is deleted along with its `state_machine` registration.
+
 ### Performance
 
 The play loop went from ~11 fps to comfortably past the 60 fps cap on the

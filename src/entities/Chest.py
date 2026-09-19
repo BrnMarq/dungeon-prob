@@ -23,7 +23,7 @@ back and decide whether it's worth walking over to collect, rather than
 it being forced on them the instant they open the chest.
 """
 
-from typing import Any, TypeVar
+from typing import Any, Dict, TypeVar
 
 import random
 
@@ -77,6 +77,31 @@ class Chest:
         self._pending_item_id = None
         self._reveal_timer = 0.0
         self._item_spawned = False
+
+    def to_save_dict(self) -> Dict[str, Any]:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "cost": self.cost,
+            "opening": self.opening,
+            "opened": self.opened,
+            "frame_index": self.frame_index,
+            "pending_item_id": self._pending_item_id,
+            "item_spawned": self._item_spawned,
+        }
+
+    def apply_save_dict(self, data: Dict[str, Any]) -> None:
+        """Overlays a to_save_dict() snapshot onto an already-constructed
+        Chest (see PlayState._load_from_save_data) - self.cost, in
+        particular, is randomly re-rolled by the constructor and always
+        needs overwriting.
+        """
+        self.cost = data["cost"]
+        self.opening = data["opening"]
+        self.opened = data["opened"]
+        self.frame_index = data["frame_index"]
+        self._pending_item_id = data["pending_item_id"]
+        self._item_spawned = data["item_spawned"]
 
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)

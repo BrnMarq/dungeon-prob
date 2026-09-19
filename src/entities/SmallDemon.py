@@ -1,4 +1,4 @@
-from typing import Any, Optional, TypeVar
+from typing import Any, Dict, Optional, TypeVar
 
 import pygame
 
@@ -80,6 +80,26 @@ class SmallDemon(Entity):
         self.attack_damage = round(settings.DEMON_ATTACK_DAMAGE * damage_multiplier)
         self.target = target
         self.change_state("spawn")
+
+    def to_save_dict(self) -> Dict[str, Any]:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "hp": self.hp,
+            "max_hp": self.max_hp,
+            "attack_damage": self.attack_damage,
+        }
+
+    def apply_save_dict(self, data: Dict[str, Any]) -> None:
+        """Overlays a to_save_dict() snapshot onto an already-constructed
+        SmallDemon (see PlayState._load_from_save_data) - the caller is
+        also responsible for calling self.change_state("follow")
+        afterward, skipping the spawn animation a freshly-constructed
+        demon would otherwise start in.
+        """
+        self.hp = data["hp"]
+        self.max_hp = data["max_hp"]
+        self.attack_damage = data["attack_damage"]
 
     def take_damage(self, amount: int) -> None:
         """Reacts to incoming damage - see src.entities.player_states.

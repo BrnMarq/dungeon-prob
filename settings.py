@@ -66,6 +66,10 @@ INPUT_KEY_LABELS = {
 
 TITLE = "Dungeon Prob"
 
+# gale.save.SaveManager's single slot name (src.states.PauseMenuState) -
+# this game only ever has one save at a time, no slot-picker UI.
+SAVE_SLOT = "save1"
+
 # Size we want to emulate
 VIRTUAL_WIDTH = 640
 VIRTUAL_HEIGHT = 360
