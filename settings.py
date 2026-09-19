@@ -167,12 +167,14 @@ SWORD_FLOAT_FRAME_INTERVAL = 0.15
 SWORD_FLOAT_AMPLITUDE = 4
 SWORD_FLOAT_SPEED = 3.0
 
-# Touching a floating sword detonates it - gale.particle_system burst plus
-# area damage, and refunds the player's dash (see ThrownSword._explode).
+# Touching a floating sword detonates it - a src.entities.ShadowExplosion
+# animation plus area damage, and refunds the player's dash (see
+# ThrownSword._explode).
 SWORD_EXPLOSION_RADIUS = 48
 SWORD_EXPLOSION_DAMAGE = 20
-SWORD_EXPLOSION_PARTICLE_COUNT = 24
-SWORD_EXPLOSION_COLOR = pygame.Color(20, 20, 20, 255)
+
+# src.entities.ShadowExplosion - seconds each of its 4 frames holds for.
+SHADOW_EXPLOSION_FRAME_INTERVAL = 0.05
 
 # Used by src.entities.enemy_states.FollowState/AttackState - close to
 # the player's own PLAYER_SPEED so a chase is genuinely threatening
@@ -527,6 +529,11 @@ TEXTURES = {
     "ruins_pillars": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "ruins-pillars.png"
     ),
+    # 192x48 - 4 48x48 frames (src.entities.ShadowExplosion), played once
+    # where a thrown sword (src.entities.ThrownSword) detonates.
+    "shadow_explosion": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "shadow-explosion.png"
+    ),
 }
 
 # The single pixel in background.png is the parallax background's sky
@@ -558,6 +565,7 @@ FRAMES = {
     "chest": frames.generate_frames(TEXTURES["chest"], 16, 16),
     "altars": frames.generate_frames(TEXTURES["altars"], 80, 80),
     "ruins_pillars": frames.generate_frames(TEXTURES["ruins_pillars"], 32, 48),
+    "shadow_explosion": frames.generate_frames(TEXTURES["shadow_explosion"], 48, 48),
 }
 
 # src.ui.HUD - seconds each gold_icon coin-spin frame holds for.

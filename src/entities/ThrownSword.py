@@ -3,10 +3,9 @@ from typing import Any, List, Optional, TypeVar
 
 import pygame
 
-from gale.particle_system import ParticleSystem
-
 import settings
 from src import render
+from src.entities.ShadowExplosion import ShadowExplosion
 
 
 class ThrownSword:
@@ -21,8 +20,9 @@ class ThrownSword:
     through the thrown/midair/near_max_travel animations by distance
     fraction, then lands and floats in place (sine-tweened y, looping the
     floating animation) until the player touches it - which detonates it
-    (a black gale.particle_system burst plus area damage) and refunds the
-    player's dash, per the design brief.
+    (area damage plus a src.entities.ShadowExplosion animation at the
+    sword's own position) and refunds the player's dash, per the design
+    brief.
     """
 
     TEXTURE_ID = "dark_sword"
@@ -65,32 +65,21 @@ class ThrownSword:
         self._phase = "thrown"
         self.frame_index = self.THROWN_FRAMES[0]
 
-        self.particles: ParticleSystem = None
-        self._explosion_rect: Optional[pygame.Rect] = None
-
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
 
     def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
         """Debug-overlay hook (src/debug.py, src/map/Level.py) - the
-        in-flight collision rect while the sword can actually land a hit,
-        or the (already-resolved, one-shot) explosion's area-damage
-        circle - as its bounding square - for as long as the burst is
-        still playing, so it's visible on-screen a moment rather than
-        flashing for a single frame. None while floating inert, since it
-        deals no damage until touched.
+        in-flight collision rect while the sword can actually land a hit.
+        None while floating inert, since it deals no damage until
+        touched, or once it's detonated - self.is_dead by then, so
+        Level.render has already stopped calling this anyway.
         """
-        if self.particles is not None:
-            return self._explosion_rect
         if self.floating:
             return None
         return self.get_collision_rect()
 
     def update(self, dt: float) -> None:
-        if self.particles is not None:
-            self.particles.update(dt)
-            return
-
         if self.floating:
             self._update_floating(dt)
             return
@@ -190,10 +179,6 @@ class ThrownSword:
         radius = settings.SWORD_EXPLOSION_RADIUS
         radius_squared = radius**2
 
-        self._explosion_rect = pygame.Rect(
-            round(center_x - radius), round(center_y - radius), radius * 2, radius * 2
-        )
-
         for other in self._damageable_entities():
             rect = other.get_collision_rect()
             dx = rect.centerx - center_x
@@ -205,26 +190,10 @@ class ThrownSword:
 
         self.player.dash_cooldown_timer = 0.0
 
-        self.particles = ParticleSystem(
-            center_x,
-            center_y,
-            settings.SWORD_EXPLOSION_PARTICLE_COUNT,
-            on_finish=self._finish_explosion,
-        )
-        self.particles.set_life_time(0.2, 0.5)
-        self.particles.set_linear_acceleration(-120, -120, 120, 120)
-        self.particles.set_colors([settings.SWORD_EXPLOSION_COLOR])
-        self.particles.set_area_spread(4, 4)
-        self.particles.generate()
-
-    def _finish_explosion(self) -> None:
+        self.level.entities.append(ShadowExplosion(center_x, center_y))
         self.is_dead = True
 
     def render(self, surface: pygame.Surface, camera: Any) -> None:
-        if self.particles is not None:
-            self.particles.render(surface)
-            return
-
         image = render.sprite(self.TEXTURE_ID, self.frame_index, self.flipped)
 
         dest = camera.apply(pygame.Rect(self.x, self.y, self.width, self.height))
