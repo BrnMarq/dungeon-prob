@@ -180,6 +180,9 @@ class PlayState(BaseState):
             self.boss.apply_save_dict(boss_data)
             self.level.entities.append(self.boss)
             self.level.boss_active = True
+            # enter() has already started "playing" above - a save taken
+            # mid-fight resumes into the fight, so it gets its track back.
+            play_music("boss")
 
     def _spawn_player(self) -> None:
         """Picks the player's spawn column/ground row once per level -
@@ -455,6 +458,7 @@ class PlayState(BaseState):
         )
         self.level.entities.append(self.boss)
         self.level.boss_active = True
+        play_music("boss")
 
     def _reset_level(self) -> None:
         """Chosen at the altar once its buff has ended (level.altar_choice

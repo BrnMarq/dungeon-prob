@@ -43,7 +43,8 @@ the major version stays `0`, breaking changes can land in any release.
     moves dies in about ten seconds.
   - Its health shows on a full-width bar across the top of the screen
     (`src/ui/boss_health_bar.py`) rather than the overhead bar other
-    enemies get, clear of the HUD's gold counter and run-timer sign.
+    enemies get, clear of the HUD's gold counter and run-timer sign, and
+    summoning it cross-fades the music to its own `boss` track.
   - Demon spawning stays off for the whole fight (it already stopped when
     the altar's buff ended), and the altar itself can't be interacted with
     while the guardian is alive. The fight is included in save/load
@@ -102,10 +103,13 @@ the major version stays `0`, breaking changes can land in any release.
     the player touches a landed sword to set it off, `demon_attack` on
     the demon's own swing, `chest_open` the moment a lid starts moving,
     and `item_pickup` once per item collected.
-  - Five music tracks, one per screen (title/playing/game over/victory)
-    plus `altar_activation`, which the altar swaps to the instant it
-    starts activating and `PlayState` swaps back out of once the buff
-    ends.
+  - Six music tracks: one per screen (title/playing/game over/victory),
+    `altar_activation`, which the altar swaps to the instant it starts
+    activating and `PlayState` swaps back out of once the buff ends, and
+    `boss`, swapped in the moment the guardian is summoned and left for
+    the whole fight (nothing swaps it back out - the fight only ends by
+    winning or dying, and both of those screens bring their own track).
+    A save taken mid-fight resumes into it.
   - `play_music` cross-fades rather than cutting: it fades the outgoing
     track out, then fades the next one in, sequenced through
     `gale.timer.Timer` (already stepped once a frame by `gale.game.Game`,
