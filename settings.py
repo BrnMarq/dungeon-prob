@@ -834,6 +834,11 @@ MUSIC = {
     # activating, back to "playing" once its buff ends (src.states.
     # PlayState.update).
     "altar_activation": BASE_DIR / "assets" / "sounds" / "altar-activation.mp3",
+    # The zone guardian's fight (src.states.PlayState._spawn_boss) -
+    # swapped in the moment it is summoned and left playing for the whole
+    # fight. Nothing swaps it back out: the fight only ends by winning
+    # (VictoryState's own track) or dying (GameOverState's).
+    "boss": BASE_DIR / "assets" / "sounds" / "boss.mp3",
 }
 
 # Register your fonts from the fonts folder, for instance:

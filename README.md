@@ -152,8 +152,9 @@ of a wind-up the way a demon can. Its attacks:
 - **Long sweep** - slow, heavily telegraphed, and reaches most of a
   screen-width.
 
-Its health shows on a bar across the top of the screen. Beat it and the
-run ends on the victory screen, which totals your time, kills, gold,
+Its health shows on a bar across the top of the screen, and summoning it
+switches the music to its own track. Beat it and the run ends on the
+victory screen, which totals your time, kills, gold,
 damage dealt, and every item you collected.
 
 ## Pause, save and load
