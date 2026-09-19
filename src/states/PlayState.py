@@ -13,16 +13,26 @@ from src.entities.Chest import Chest
 from src.entities.Decoration import Decoration
 from src.entities.Player import Player
 from src.entities.SmallDemon import SmallDemon
+from src.items.Pickup import Pickup
 from src.map.Level import Level
 from src.states.BaseState import BaseState
 from src.ui.HUD import HUD
 
 
 class PlayState(BaseState):
-    def enter(self, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> None:
+    def enter(
+        self,
+        *args: Tuple[Any],
+        save_data: Optional[Dict[str, Any]] = None,
+        **kwargs: Dict[str, Any],
+    ) -> None:
         play_music("playing")
 
         self.level = Level(settings.TILEMAPS['forest'])
+
+        if save_data is not None:
+            self._load_from_save_data(save_data)
+            return
 
         self._spawn_player()
         self.player = Player(
@@ -48,6 +58,101 @@ class PlayState(BaseState):
         self.hud = HUD(self.player)
         self._spawn_chests()
         self._spawn_altar()
+
+    def get_save_data(self) -> Dict[str, Any]:
+        """Everything needed to fully reconstruct this run - see
+        _load_from_save_data. Called by src.states.PauseMenuState's
+        Save option.
+        """
+        demons = []
+        chests = []
+        pickups = []
+        altar_pos = None
+
+        for entity in self.level.entities:
+            if isinstance(entity, SmallDemon):
+                demons.append(entity.to_save_dict())
+            elif isinstance(entity, Chest):
+                chests.append(entity.to_save_dict())
+            elif isinstance(entity, Pickup):
+                pickups.append(entity.to_save_dict())
+            elif isinstance(entity, Altar):
+                altar_pos = [entity.x, entity.y]
+
+        return {
+            "elapsed_time": self.elapsed_time,
+            "spawn_center_x": self._spawn_center_x,
+            "spawn_ground_y": self._spawn_ground_y,
+            "altar_phase": self.level.altar_phase,
+            "altar_buff_timer": self.level.altar_buff_timer,
+            "altar_pos": altar_pos,
+            "player": self.player.to_save_dict(),
+            "demons": demons,
+            "chests": chests,
+            "pickups": pickups,
+        }
+
+    def _load_from_save_data(self, data: Dict[str, Any]) -> None:
+        """The save_data path through enter() - reconstructs the run
+        get_save_data() captured, in place of the normal random-
+        generation path (_spawn_player/_spawn_chests/_spawn_altar).
+        """
+        self._spawn_center_x = data["spawn_center_x"]
+        self._spawn_ground_y = data["spawn_ground_y"]
+
+        player_data = data["player"]
+        self.player = Player(player_data["x"], player_data["y"], self.level)
+        self.player.apply_save_dict(player_data)
+        self.level.entities.append(self.player)
+        self._spawn_pillars()
+
+        self.camera = Camera(settings.VIRTUAL_WIDTH, settings.VIRTUAL_HEIGHT)
+        self.camera.bounds = self.level.get_rect()
+        self.camera.follow(self.player, rate=settings.CAMERA_FOLLOW_RATE)
+        self.camera.x, self.camera.y = self.player.x, self.player.y
+        self.camera.update(0)
+
+        self.spawn_timer = 0.0
+        self.elapsed_time = data["elapsed_time"]
+        self.current_tier = settings.DIFFICULTY_TIERS[0]
+        for tier in settings.DIFFICULTY_TIERS:
+            if tier["start_time"] <= self.elapsed_time:
+                self.current_tier = tier
+
+        self.hud = HUD(self.player)
+
+        self.level.altar_phase = data["altar_phase"]
+        self.level.altar_buff_timer = data["altar_buff_timer"]
+
+        for demon_data in data["demons"]:
+            demon = SmallDemon(
+                demon_data["x"], demon_data["y"], self.level, target=self.player
+            )
+            demon.apply_save_dict(demon_data)
+            demon.change_state("follow")
+            self.level.entities.append(demon)
+
+        for chest_data in data["chests"]:
+            chest = Chest(chest_data["x"], chest_data["y"], self.player, self.level)
+            chest.apply_save_dict(chest_data)
+            self.level.entities.append(chest)
+
+        for pickup_data in data["pickups"]:
+            self.level.entities.append(
+                Pickup(
+                    pickup_data["x"],
+                    pickup_data["base_y"],
+                    pickup_data["item_id"],
+                    self.player,
+                    self.level,
+                )
+            )
+
+        if data["altar_pos"] is not None:
+            x, y = data["altar_pos"]
+            altar = Altar(x, y, self.player, self.level)
+            altar.frame_index = 0 if self.level.altar_phase == "inactive" else 3
+            self.level.entities.append(altar)
 
     def _spawn_player(self) -> None:
         """Picks the player's spawn column/ground row once per level -
