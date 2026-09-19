@@ -87,7 +87,10 @@ common pool 90% of the time and the rare (red) pool 10%.
 | Jimbo         | rare   | x4 damage while owned (does not stack further) |
 | Soul Box      | rare   | +1 base damage per kill, permanently |
 
-Picking one up floats its name above the pickup, tinted by rarity.
+Picking one up floats its name above the pickup, tinted by rarity, and
+adds it to the translucent item bar in the HUD's bottom-left corner -
+every item you are carrying, with its stack count, without leaving the
+run to check.
 
 ## The run
 

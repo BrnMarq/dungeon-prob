@@ -10,6 +10,7 @@ from src import render
 from src.audio import play_music
 from src.items.definitions import ITEMS
 from src.states.BaseState import BaseState
+from src.ui import item_icon
 
 TITLE_FONT_SIZE = 48
 STAT_FONT_SIZE = 16
@@ -46,35 +47,10 @@ DEMON_RUN_FRAMES = list(range(8, 16))
 
 GOLD_ICON_SIZE = 16
 
-# Native item art is 16x16 (src.items.definitions.ITEMS) - composited
-# with its 1px outline (same src.render.outline/ITEM_OUTLINE_COLORS
-# treatment as src.items.Pickup.render, see _build_item_icon) onto an
-# 18x18 canvas, then scaled up together so the outline scales with the
-# icon instead of staying a flat 1px regardless of size.
-ITEM_ICON_NATIVE_SIZE = 16
-ITEM_OUTLINE_OFFSETS = ((-1, 0), (1, 0), (0, -1), (0, 1))
+# Icons are built by src.ui.item_icon, shared with src.ui.HUD's in-run
+# item bar so the same item looks identical in both places.
 ITEM_ICON_SCALE = 1.25
 ITEM_ICON_GAP = 6
-
-
-def _build_item_icon(texture_id: str, frame_index: int) -> pygame.Surface:
-    """Native 16x16 item art plus its 1px outline (see ITEM_ICON_SCALE's
-    comment above), scaled up as one composite so the outline stays
-    proportional to the icon instead of a flat 1px sliver next to a much
-    bigger icon.
-    """
-    canvas_size = ITEM_ICON_NATIVE_SIZE + 2
-    canvas = pygame.Surface((canvas_size, canvas_size), pygame.SRCALPHA)
-
-    image = render.sprite(texture_id, frame_index)
-    outline_color = settings.ITEM_OUTLINE_COLORS[texture_id]
-    outline = render.outline(texture_id, frame_index, outline_color)
-    for dx, dy in ITEM_OUTLINE_OFFSETS:
-        canvas.blit(outline, (1 + dx, 1 + dy))
-    canvas.blit(image, (1, 1))
-
-    display_size = round(canvas_size * ITEM_ICON_SCALE)
-    return pygame.transform.scale(canvas, (display_size, display_size))
 
 
 class VictoryState(BaseState):
@@ -110,7 +86,9 @@ class VictoryState(BaseState):
                 count = self.player.item_stacks[item_id]
                 if count <= 0:
                     continue
-                icon = _build_item_icon(item["texture_id"], item["frame_index"])
+                icon = item_icon.build(
+                    item["texture_id"], item["frame_index"], ITEM_ICON_SCALE
+                )
                 self.collected_items.append((icon, count))
 
     def exit(self) -> None:
