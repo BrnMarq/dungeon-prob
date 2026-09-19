@@ -125,10 +125,6 @@ class BossReaper(Entity):
         self.long_damage = round(settings.BOSS_LONG_DAMAGE * damage_multiplier)
 
         self.target = target
-        # Which attack id is mid-swing, for the debug-hitbox overlay
-        # (get_attack_hitbox_rect) - set/cleared by boss_states.
-        # SwingState, None the rest of the time.
-        self.attacking: Optional[str] = None
         # The last attack picked, so FloatState can avoid repeating it.
         self.last_attack: Optional[str] = None
         # Set by boss_states.DeathState - swaps render() over to
@@ -182,9 +178,9 @@ class BossReaper(Entity):
         vertically on the hurtbox so it reaches the player hovering
         below.
 
-        Single source of truth for all three consumers - where the damage
-        lands, where the slash sprite is centered (boss_states.
-        SwingState._land_hit), and what the 'h' debug overlay draws.
+        Single source of truth for both consumers - where the damage
+        lands, and where the slash sprite is centered (boss_states.
+        SwingState._land_hit).
         """
         if attack_id == "long_slash":
             width = settings.BOSS_LONG_HIT_WIDTH
@@ -198,14 +194,6 @@ class BossReaper(Entity):
         own = self.get_collision_rect()
         x = own.right if self.flipped else own.left - width
         return pygame.Rect(x, own.centery - height / 2, width, height)
-
-    def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
-        """Debug-overlay hook (src/debug.py, src/map/Level.py) - only
-        exposed while actually mid-swing, same as SmallDemon's/Player's.
-        """
-        if self.attacking is None:
-            return None
-        return self.attack_hitbox_rect(self.attacking)
 
     def take_damage(self, amount: int) -> None:
         """Reacts to incoming damage - see src.entities.player_states.

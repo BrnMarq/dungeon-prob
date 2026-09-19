@@ -5,7 +5,6 @@ from gale.input_handler import InputData, InputListener
 from gale.save import SaveManager
 from gale.state import StateMachine, StateStack
 
-import settings
 from src.states.TitleState import TitleState
 from src.states.PlayState import PlayState
 from src.states.GameOverState import GameOverState
@@ -54,7 +53,4 @@ class DungeonProb(Game, InputListener):
             self.pause_stack.on_input(input_id, input_data)
             return
 
-        if input_id == 'toggle_debug_hitboxes' and input_data.pressed:
-            settings.DEBUG_HITBOXES = not settings.DEBUG_HITBOXES
-        else:
-            self.state_machine.on_input(input_id, input_data)
+        self.state_machine.on_input(input_id, input_data)

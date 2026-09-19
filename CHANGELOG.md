@@ -75,6 +75,23 @@ the major version stays `0`, breaking changes can land in any release.
   - `src/states/PauseState.py`, an unreachable stub nothing ever
     transitioned to, is deleted along with its `state_machine` registration.
 
+### Removed
+
+- The debug hitbox/hurtbox overlay and its `H` toggle, in full:
+  `src/debug.py` (`draw_translucent_rect`/`draw_translucent_circle`),
+  `Level._render_debug_hitboxes`, `settings.DEBUG_HITBOXES`/
+  `DEBUG_HURTBOX_COLOR`/`DEBUG_HITBOX_COLOR`, the `KEY_h` ->
+  `toggle_debug_hitboxes` binding and the branch in `Game.on_input` that
+  read it. The per-entity `get_attack_hitbox_rect` hooks (`Player`,
+  `SmallDemon`, `ThrownSword`, `BossReaper`) and `Player.
+  get_rage_hitbox_circle` went with it - they existed only to feed the
+  overlay - as did `BossReaper.attacking`, which only existed to tell it
+  which attack was mid-swing.
+  - The rects combat actually hits with are untouched:
+    `Player.attack_hitbox_rect`, `SmallDemon.melee_range_rect` and
+    `BossReaper.attack_hitbox_rect` are all still there and still the
+    single source of truth for where a hit lands.
+
 ### Performance
 
 The play loop went from ~11 fps to comfortably past the 60 fps cap on the

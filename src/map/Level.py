@@ -5,7 +5,7 @@ import pygame
 from gale.tilemap import CollisionType, collision_type_at, load_tiled_map
 
 import settings
-from src import debug, render
+from src import render
 from src.map.Background import ParallaxBackground
 from src.ui.health_bar import render_health_bar
 
@@ -155,30 +155,3 @@ class Level:
             entity.render(surface, camera)
             if getattr(entity, "SHOW_HEALTH_BAR", False):
                 render_health_bar(surface, camera, entity)
-
-        if settings.DEBUG_HITBOXES:
-            self._render_debug_hitboxes(surface, camera)
-
-    def _render_debug_hitboxes(self, surface: pygame.Surface, camera: Any) -> None:
-        for entity in self.entities:
-            if hasattr(entity, "get_collision_rect"):
-                debug.draw_translucent_rect(
-                    surface, camera, entity.get_collision_rect(), settings.DEBUG_HURTBOX_COLOR
-                )
-            if hasattr(entity, "get_attack_hitbox_rect"):
-                hitbox = entity.get_attack_hitbox_rect()
-                if hitbox is not None:
-                    debug.draw_translucent_rect(
-                        surface, camera, hitbox, settings.DEBUG_HITBOX_COLOR
-                    )
-            if hasattr(entity, "get_rage_hitbox_circle"):
-                circle = entity.get_rage_hitbox_circle()
-                if circle is not None:
-                    center_x, center_y, radius = circle
-                    debug.draw_translucent_circle(
-                        surface,
-                        camera,
-                        (center_x, center_y),
-                        radius,
-                        settings.DEBUG_HITBOX_COLOR,
-                    )

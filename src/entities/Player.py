@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import Any, Dict, Optional, Tuple, TypeVar
+from typing import Any, Dict, Tuple, TypeVar
 
 import math
 import random
@@ -461,29 +461,6 @@ class Player(Entity):
         else:
             x = self.x + self.width - settings.PLAYER_ATTACK_INSET
         return pygame.Rect(x, self.y, settings.PLAYER_ATTACK_RANGE, self.height)
-
-    def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
-        """Debug-overlay hook (src/debug.py, src/map/Level.py) - only
-        exposed while actually mid-swing.
-        """
-        if not isinstance(self.state_machine.current, AttackState):
-            return None
-        return self.attack_hitbox_rect()
-
-    def get_rage_hitbox_circle(self) -> Optional[Tuple[float, float, float]]:
-        """Debug-overlay hook (src/debug.py, src/map/Level.py) - (center_x,
-        center_y, radius) of the R ability's hit area, only exposed while
-        actually mid-burst. Mirrors get_attack_hitbox_rect's pattern, but a
-        circle instead of a rect since RageState hits by distance, not
-        rect overlap - see RageState._land_hit.
-        """
-        if not isinstance(self.state_machine.current, RageState):
-            return None
-        return (
-            self.x + self.width / 2,
-            self.y + self.height / 2,
-            settings.PLAYER_RAGE_RADIUS,
-        )
 
     def get_ability_cooldown(self, slot: int) -> Tuple[float, float]:
         """(seconds remaining, total cooldown) for src.ui.HUD's ability bar,

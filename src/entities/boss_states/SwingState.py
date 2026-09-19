@@ -31,7 +31,6 @@ class SwingState(BaseEntityState):
         self.entity.vx = 0
         self.entity.vy = 0
         self.entity.last_attack = self.ATTACK_ID
-        self.entity.attacking = self.ATTACK_ID
         self.entity.face_target()
         self.entity.change_animation(self.ANIMATION_ID)
 
@@ -40,9 +39,6 @@ class SwingState(BaseEntityState):
         self._hit_delay = self.HIT_FRAME_INDEX * animation.interval
         self._elapsed = 0.0
         self._hit_landed = False
-
-    def exit(self) -> None:
-        self.entity.attacking = None
 
     def _land_hit(self) -> None:
         hitbox = self.entity.attack_hitbox_rect(self.ATTACK_ID)
