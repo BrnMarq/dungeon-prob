@@ -216,3 +216,37 @@ A few conventions worth knowing before changing anything:
   for why that matters on some platforms.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full, detailed history.
+
+## Special thanks
+
+None of the art or audio in this game is mine. Everything under
+`assets/` comes from one of the packs below, used under its own license -
+my thanks to the people who made them and gave them away.
+
+### Art
+
+- **[Mini Legend - Asset Pack](https://alwaysrice.itch.io/mini-legend)**
+  by AlwaysRice - the 16x16 forest tileset, the parallax treeline and
+  foliage, the player character, the small demon, and the props dotted
+  around the level.
+- **[Mini Legend - Small Cave](https://alwaysrice.itch.io/mini-legend-cave)**
+  by AlwaysRice - The Reaper, the zone guardian, along with the slash
+  effects its scythe leaves behind.
+
+### Sound effects
+
+- **[400 Sounds Pack](https://ci.itch.io/400-sounds-pack)** by
+  Chequered Ink
+- **[Free Fantasy 200 SFX Pack](https://tommusic.itch.io/free-fantasy-200-sfx-pack)**
+  by TomMusic
+
+Between them they cover every effect in `assets/sounds/` - the swings,
+the dash, the chest, the pickups, and the hits.
+
+### Music
+
+- **[Medieval Free Soundtrack (No Copyright)](https://alkakrab.itch.io/free-medieval-soundtrack-no-copyright)**
+  by alkakrab - every track in the game: the title screen, the forest,
+  the altar, the boss fight, and both endings. It is released under CC0
+  and asks for no credit at all, which makes giving it the very least I
+  can do.
