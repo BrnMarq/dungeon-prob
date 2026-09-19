@@ -92,6 +92,51 @@ the major version stays `0`, breaking changes can land in any release.
   - Levelling up still only raises the `max_hp` ceiling without topping
     hp up, exactly as before - that was never a heal.
 
+- Sound effects and music (`src/audio.py`, `settings.SOUNDS`/
+  `settings.MUSIC`), previously a silent game.
+  - Nine effects, each wired to the exact moment it belongs to:
+    `basic_attack` and `dash` on their states' `enter`, `rage_hit` on
+    every one of the rage burst's four pulses, `shadow_throw` when the
+    sword is actually released and `shadow_throw_hit` whenever it
+    connects (in flight or on detonation), `shadow_sword_pickup` when
+    the player touches a landed sword to set it off, `demon_attack` on
+    the demon's own swing, `chest_open` the moment a lid starts moving,
+    and `item_pickup` once per item collected.
+  - Five music tracks, one per screen (title/playing/game over/victory)
+    plus `altar_activation`, which the altar swaps to the instant it
+    starts activating and `PlayState` swaps back out of once the buff
+    ends.
+  - `play_music` cross-fades rather than cutting: it fades the outgoing
+    track out, then fades the next one in, sequenced through
+    `gale.timer.Timer` (already stepped once a frame by `gale.game.Game`,
+    so no new per-frame hook). `pygame.mixer.music` is a single stream so
+    the two can't literally overlap, but fade-out into fade-in reads the
+    same to the ear. Re-requesting the track already playing is a no-op,
+    so it never restarts itself.
+- On-screen key hints, so no binding has to be memorised from this file:
+  the HUD's four ability slots each render their own bound letter
+  (`Q`/`W`/`E`/`R`), and chests and altars float a "Press X to Y" prompt
+  above themselves whenever they are actually interactable - "Open" for a
+  chest, "Activate" for a dormant altar, "Summon Guardian"/"Reset Level"
+  for one whose buff has ended. Shared `src/ui/interact_prompt.py` helper
+  reading a new `settings.INPUT_KEY_LABELS` registry, so the displayed
+  key and the real binding can't drift apart.
+- A fading item-name popup on pickup (`src/entities/ItemPopup.py`) - the
+  item's display name at the pickup's position, held briefly at full
+  opacity then faded out via per-surface alpha, tinted by rarity
+  (`settings.ITEM_OUTLINE_COLORS`). Items gained a `"name"` field in
+  `src.items.definitions.ITEMS` to back it.
+
+### Changed
+
+- The thrown sword's detonation is a sprite animation rather than a
+  particle burst: `ThrownSword._explode` appends a
+  `src.entities.ShadowExplosion` (the same one-shot duck-typed entity
+  pattern as `HitEffect`) playing `assets/graphics/shadow-explosion.png`
+  once, and marks the sword dead immediately instead of waiting on the
+  particle system's `on_finish` callback. Dropped the now-unused
+  `SWORD_EXPLOSION_PARTICLE_COUNT`/`_COLOR` settings.
+
 ### Removed
 
 - The debug hitbox/hurtbox overlay and its `H` toggle, in full:

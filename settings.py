@@ -38,10 +38,10 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_g, "reset")
 # Title screen (src.states.TitleState) - advances to the play state.
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "start")
 
-# Ability bar - Q/W/E/R map straight to HUD slots 1-4 (src.ui.HUD). Q and E
-# are wired to real abilities below; W/R are reserved action ids with
-# nothing bound to them on the receiving end yet (src.entities.Player) -
-# safe no-ops until those abilities exist.
+# Ability bar - Q/W/E/R map straight to HUD slots 1-4 (src.ui.HUD), and
+# all four are wired to real abilities on the receiving end
+# (src.entities.Player's command_bindings): attack, the thrown sword,
+# the dash, and the rage burst respectively.
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_q, "attack")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_w, "ability_2")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_e, "dash")
