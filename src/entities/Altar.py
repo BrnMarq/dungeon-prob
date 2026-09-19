@@ -124,7 +124,7 @@ class Altar:
             self.player.interact_requested = False
             self.level.altar_phase = "activating"
             self._activate_anim_timer = 0.0
-            self.player.hp = self.player.max_hp
+            self.player.heal(self.player.max_hp)
             play_music("altar_activation")
             return
 

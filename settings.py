@@ -362,6 +362,13 @@ ENEMY_HEALTH_BAR_BORDER_COLOR = (10, 10, 10)
 # src.entities.DamageNumber - floating combat-text color for damage taken.
 DAMAGE_NUMBER_COLOR = pygame.Color(190, 80, 230)
 DODGE_TEXT_COLOR = pygame.Color(255, 255, 255)  # "Dodged!" popup color
+# src.entities.Player.heal's "+N" popup - a brighter relative of the HUD
+# hp bar's green (src.ui.HUD.HP_COLOR, 90/200/90), so healing still reads
+# as "that bar went up" rather than a fourth unrelated colour of floating
+# text. Brighter because the bar has a dark HUD behind it while this
+# floats over the forest, which is itself green - at the bar's own shade
+# the popup sat too close to the background to pick out at a glance.
+HEAL_TEXT_COLOR = pygame.Color(120, 255, 130)
 
 # Used by src.entities.Player / src.ui.HUD.
 PLAYER_MAX_HP = 100

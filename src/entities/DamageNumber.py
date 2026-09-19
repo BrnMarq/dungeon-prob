@@ -18,8 +18,9 @@ class DamageNumber:
     conforms to the same duck-typed interface src.map.Level's entities list
     expects (update/render/is_dead), so it drops into Level.entities like
     any other entity with no special-casing in Level's update/render loop.
-    text is usually a damage amount (int), but src.entities.Player.take_damage
-    also uses it for the cat's spirit's "Dodged!" popup.
+    text is usually a damage amount (int), but src.entities.Player also
+    uses it for take_damage's cat's-spirit "Dodged!" popup and for heal's
+    green "+N".
     """
 
     def __init__(
