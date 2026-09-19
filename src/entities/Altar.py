@@ -21,7 +21,9 @@ replaces this altar object entirely - the phase has to survive that:
   interactable. PlayState flips this to "ended" once the timer runs out,
   at which point it also stops spawning demons entirely.
 - "ended": interactable again - "interact" sets level.altar_choice to
-  "final_level" (PlayState switches to VictoryState), "reset" sets it to
+  "final_level", which summons the zone guardian (src.entities.
+  BossReaper) rather than ending the run outright: beating it is what
+  now reaches VictoryState. "reset" sets it to
   "reset" (PlayState._reset_level regenerates the map, spawns a fresh
   altar back at "inactive", but leaves run time/difficulty/player stats
   alone).
@@ -86,6 +88,11 @@ class Altar:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
 
     def can_interact(self) -> bool:
+        # Nothing to do at the altar once the guardian it summoned is on
+        # the field - the run is decided by that fight now, so neither
+        # option (summon again, reset the level) may be taken mid-fight.
+        if self.level.boss_active:
+            return False
         return self.level.altar_phase in (
             "inactive",
             "ended",
@@ -122,6 +129,8 @@ class Altar:
             return
 
         if phase == "ended":
+            if self.level.boss_active:
+                return
             if self.player.interact_requested:
                 self.player.interact_requested = False
                 self.level.altar_choice = "final_level"
@@ -145,5 +154,8 @@ class Altar:
             if self.level.altar_phase == "inactive":
                 prompts = [("interact", "Activate")]
             else:
-                prompts = [("interact", "Finish Run"), ("reset", "Reset Level")]
+                prompts = [
+                    ("interact", "Summon Guardian"),
+                    ("reset", "Reset Level"),
+                ]
             interact_prompt.render(surface, dest.centerx, dest.top - _PROMPT_GAP, prompts)

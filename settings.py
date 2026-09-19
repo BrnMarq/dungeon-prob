@@ -236,6 +236,123 @@ DEMON_CLIMB_ALIGN_THRESHOLD = 16
 # the top, so they'd keep re-grabbing instead of jumping off).
 CLIMB_GRAB_WIDTH = 3
 
+# Zone guardian - "The Reaper" (src.entities.BossReaper, assets/graphics/
+# boss/boss-reaper.png). Summoned by pressing "interact" at the altar once
+# its buff has ended (src.entities.Altar's "ended" phase, previously an
+# instant jump to VictoryState) - beating it is what now ends the run, so
+# these numbers are deliberately steep: the intended loop is resetting the
+# forest (the altar's "reset" option) several times to stack items before
+# the guardian is beatable at all.
+BOSS_MAX_HP = 1200
+# Like a SmallDemon's, the guardian's hp/damage are scaled once at spawn
+# time by the current difficulty tier (see DIFFICULTY_TIERS above and
+# src.states.PlayState._spawn_boss) - a long run means a harder guardian.
+BOSS_NAME = "The Reaper"
+# Hurtbox, much smaller than the 144x128 cell its art sits in (see
+# FRAMES["boss_reaper"] below) - sized to the reaper's body, deliberately
+# not to its scythe, so the blade sticking out to one side isn't a free
+# extra target area.
+BOSS_WIDTH = 40
+BOSS_HEIGHT = 72
+# The guardian floats - it is the one Entity that ignores gravity and
+# tile collision entirely (see BossReaper.update), drifting at this speed
+# toward a hover point beside the player while bobbing up and down by
+# BOSS_FLOAT_AMPLITUDE pixels.
+#
+# BOSS_HOVER_HEIGHT is how far its own feet hang above the player's feet,
+# NOT above the player's head: floating clear over Marze's head put the
+# guardian's body (and therefore the swipe hitbox, which is centered on
+# it) entirely above him, so its melee swung through empty air and a
+# player who never moved at all survived nearly half a minute. Hovering
+# just off the ground also reads better for a reaper - taller than the
+# player and scything down at him, rather than a kite on a string.
+BOSS_FLOAT_SPEED = 46
+BOSS_HOVER_HEIGHT = 20
+BOSS_FLOAT_AMPLITUDE = 6
+BOSS_FLOAT_BOB_SPEED = 2.2
+# Seconds hovering between attacks - the whole fight's readability rests
+# on this pause, so the player gets a window to close in or heal rather
+# than facing back-to-back wind-ups.
+BOSS_ATTACK_COOLDOWN = 1.1
+# Horizontal distance (to the player) inside which the guardian prefers
+# the scythe swipe, and inside which the long sweep is worth using at
+# all - further out than the latter and it teleports or casts instead.
+BOSS_SWIPE_RANGE = 76
+BOSS_LONG_RANGE = 230
+
+# Per-attack frame intervals (frame indices are documented on
+# FRAMES["boss_reaper"] below). The long sweep is deliberately the
+# slowest of the three - 12 frames at this interval is over a second of
+# telegraph, which is what makes its huge hitbox fair.
+BOSS_IDLE_FRAME_INTERVAL = 0.16
+BOSS_MAGIC_FRAME_INTERVAL = 0.12
+BOSS_TELEPORT_FRAME_INTERVAL = 0.09
+BOSS_SWIPE_FRAME_INTERVAL = 0.06
+BOSS_LONG_FRAME_INTERVAL = 0.11
+
+# Damage per attack. Against PLAYER_MAX_HP (100, plus ITEM_HP_BONUS per
+# frozen heart) these read as "three mistakes and you are dead" - the
+# reason the aegis shield/cat's spirit stacks farmed over several forest
+# resets matter so much here.
+BOSS_MAGIC_DAMAGE = 25
+BOSS_SWIPE_DAMAGE = 30
+BOSS_LONG_DAMAGE = 40
+
+# Magic attack (src.entities.boss_states.MagicState, src.entities.
+# BossMagic) - the cast animation spawns a detonation centered on
+# wherever the player was standing at the moment it finished, which
+# telegraphs as a growing ring for BOSS_MAGIC_TELEGRAPH seconds before
+# actually dealing its damage (a shadow-explosion.png burst) to anything
+# within BOSS_MAGIC_RADIUS of that point. The delay is the dodge window:
+# stand still and it lands, keep moving and it doesn't.
+BOSS_MAGIC_TELEGRAPH = 0.55
+BOSS_MAGIC_RADIUS = 40
+BOSS_MAGIC_RING_COLOR = pygame.Color(190, 80, 230)
+
+# Teleport (src.entities.boss_states.TeleportState) - plays boss-reaper.
+# png's 3 vanish frames, reappears BOSS_TELEPORT_OFFSET pixels to one
+# side of the player (whichever side it was already on), plays those same
+# 3 frames backward, then goes straight into a swipe. Being an unavoidable
+# closer, it is the attack that stops the fight from being won by simply
+# standing far away.
+BOSS_TELEPORT_OFFSET = 44
+
+# Attack hitboxes, extending from the guardian's own hurtbox edge on the
+# side it faces (src.entities.BossReaper.attack_hitbox_rect) - sized to
+# roughly cover the slash sprite each attack plays, so what looks like it
+# should hit does (visualized by the 'h' debug overlay like every other
+# hitbox).
+BOSS_SWIPE_HIT_WIDTH = 72
+BOSS_SWIPE_HIT_HEIGHT = 96
+BOSS_LONG_HIT_WIDTH = 240
+BOSS_LONG_HIT_HEIGHT = 72
+# Frames into each swing where the hit actually lands, matched to where
+# the art shows the blade sweeping through - same trick as src.entities.
+# enemy_states.AttackState.HIT_FRAME_INDEX.
+BOSS_SWIPE_HIT_FRAME_INDEX = 5
+BOSS_LONG_HIT_FRAME_INDEX = 6
+
+# Death (src.entities.boss_states.DeathState) - the guardian plays
+# assets/graphics/boss/disappear.png instead of its own sheet (which has
+# no death row), then hands the run to VictoryState.
+BOSS_DISAPPEAR_FRAME_INTERVAL = 0.12
+
+# One-shot slash sprites played over each swing (src.entities.
+# SlashEffect) - purely visual, the damage comes from the hitboxes above.
+SLASH_NORM_FRAME_INTERVAL = 0.05
+SLASH_WIDE_FRAME_INTERVAL = 0.08
+
+# Boss health bar (src/ui/boss_health_bar.py) - a single wide bar across
+# the top of the screen while the guardian is alive, clear of the HUD's
+# own top-left gold counter and top-right run-timer sign.
+BOSS_BAR_WIDTH = 360
+BOSS_BAR_HEIGHT = 10
+BOSS_BAR_TOP = 18
+BOSS_BAR_BG_COLOR = (30, 10, 14, 230)
+BOSS_BAR_FILL_COLOR = pygame.Color(200, 30, 50)
+BOSS_BAR_BORDER_COLOR = pygame.Color(230, 210, 170)
+BOSS_BAR_NAME_COLOR = pygame.Color(235, 225, 200)
+
 # Overhead enemy health bar (src/ui/health_bar.py, drawn from
 # src.map.Level.render for any entity with SHOW_HEALTH_BAR = True) - only
 # rendered while hp < max_hp, red fill per the design ask.
@@ -538,6 +655,21 @@ TEXTURES = {
     "shadow_explosion": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "shadow-explosion.png"
     ),
+    # Zone guardian (src.entities.BossReaper) and the effects its attacks
+    # play - all under assets/graphics/boss/. See FRAMES below for each
+    # sheet's cell grid and which rows are which animation.
+    "boss_reaper": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "boss" / "boss-reaper.png"
+    ),
+    "boss_disappear": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "boss" / "disappear.png"
+    ),
+    "slash_norm": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "boss" / "slash-effect-norm.png"
+    ),
+    "slash_wide": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "boss" / "slash-effect-wide.png"
+    ),
 }
 
 # The single pixel in background.png is the parallax background's sky
@@ -570,6 +702,21 @@ FRAMES = {
     "altars": frames.generate_frames(TEXTURES["altars"], 80, 80),
     "ruins_pillars": frames.generate_frames(TEXTURES["ruins_pillars"], 32, 48),
     "shadow_explosion": frames.generate_frames(TEXTURES["shadow_explosion"], 48, 48),
+    # 1728x768, 12 cols x 6 rows of 144x128 cells - the guardian's art is
+    # inset well within that padded cell (the idle frames' opaque pixels
+    # span x 30-93, y 27-110), which BossReaper.sprite_offset re-centers
+    # onto its much smaller hurtbox. Row-major frame indices: idle 0-3,
+    # magic cast 12-14, teleport 24-26 (played forward to vanish, backward
+    # to reappear), scythe swipe 36-44, (unused) 48, long sweep 60-71.
+    "boss_reaper": frames.generate_frames(TEXTURES["boss_reaper"], 144, 128),
+    # 576x80 - 4 144x80 frames, the guardian's death poof (its own sheet
+    # has no death row) - see src.entities.boss_states.DeathState.
+    "boss_disappear": frames.generate_frames(TEXTURES["boss_disappear"], 144, 80),
+    # 512x128 - 4 128x128 frames, the slash drawn over the scythe swipe.
+    "slash_norm": frames.generate_frames(TEXTURES["slash_norm"], 128, 128),
+    # 1008x96 - 3 336x96 frames, the much wider sweep drawn over the long
+    # attack (the art is half the screen wide, hence BOSS_LONG_HIT_WIDTH).
+    "slash_wide": frames.generate_frames(TEXTURES["slash_wide"], 336, 96),
 }
 
 # src.ui.HUD - seconds each gold_icon coin-spin frame holds for.

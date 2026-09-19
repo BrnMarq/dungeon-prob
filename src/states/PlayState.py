@@ -9,6 +9,7 @@ from gale.input_handler import InputData
 import settings
 from src.audio import play_music
 from src.entities.Altar import Altar
+from src.entities.BossReaper import BossReaper
 from src.entities.Chest import Chest
 from src.entities.Decoration import Decoration
 from src.entities.Player import Player
@@ -16,7 +17,14 @@ from src.entities.SmallDemon import SmallDemon
 from src.items.Pickup import Pickup
 from src.map.Level import Level
 from src.states.BaseState import BaseState
+from src.ui import boss_health_bar
 from src.ui.HUD import HUD
+
+
+# How far to one side of the player the guardian floats in when summoned
+# (src.states.PlayState._spawn_boss) - inside the camera's own half-
+# screen reach either way, so its entrance is always on screen.
+BOSS_SPAWN_DISTANCE = 100
 
 
 class PlayState(BaseState):
@@ -56,6 +64,9 @@ class PlayState(BaseState):
         self.current_tier = settings.DIFFICULTY_TIERS[0]
 
         self.hud = HUD(self.player)
+        # The zone guardian, once summoned at the altar - None for the
+        # whole run up to that point (see _spawn_boss).
+        self.boss = None
         self._spawn_chests()
         self._spawn_altar()
 
@@ -68,6 +79,7 @@ class PlayState(BaseState):
         chests = []
         pickups = []
         altar_pos = None
+        boss = None
 
         for entity in self.level.entities:
             if isinstance(entity, SmallDemon):
@@ -78,6 +90,8 @@ class PlayState(BaseState):
                 pickups.append(entity.to_save_dict())
             elif isinstance(entity, Altar):
                 altar_pos = [entity.x, entity.y]
+            elif isinstance(entity, BossReaper):
+                boss = entity.to_save_dict()
 
         return {
             "elapsed_time": self.elapsed_time,
@@ -90,6 +104,7 @@ class PlayState(BaseState):
             "demons": demons,
             "chests": chests,
             "pickups": pickups,
+            "boss": boss,
         }
 
     def _load_from_save_data(self, data: Dict[str, Any]) -> None:
@@ -120,6 +135,7 @@ class PlayState(BaseState):
                 self.current_tier = tier
 
         self.hud = HUD(self.player)
+        self.boss = None
 
         self.level.altar_phase = data["altar_phase"]
         self.level.altar_buff_timer = data["altar_buff_timer"]
@@ -153,6 +169,17 @@ class PlayState(BaseState):
             altar = Altar(x, y, self.player, self.level)
             altar.frame_index = 0 if self.level.altar_phase == "inactive" else 3
             self.level.entities.append(altar)
+
+        # Saves made before the guardian existed (and every save taken
+        # outside a boss fight) have no "boss" key/value at all.
+        boss_data = data.get("boss")
+        if boss_data is not None:
+            self.boss = BossReaper(
+                boss_data["x"], boss_data["y"], self.level, target=self.player
+            )
+            self.boss.apply_save_dict(boss_data)
+            self.level.entities.append(self.boss)
+            self.level.boss_active = True
 
     def _spawn_player(self) -> None:
         """Picks the player's spawn column/ground row once per level -
@@ -394,6 +421,41 @@ class PlayState(BaseState):
         x, y = Altar.spawn_position(center_x, ground_surface_y)
         self.level.entities.append(Altar(x, y, self.player, self.level))
 
+    def _spawn_boss(self) -> None:
+        """Summons the zone guardian (src.entities.BossReaper), chosen at
+        the altar once its buff has ended (level.altar_choice ==
+        "final_level"). That choice used to jump straight to
+        VictoryState; now the guardian is what stands between the player
+        and it.
+
+        It floats in beside the player rather than on the altar itself -
+        far enough to read as an entrance and to leave room to react,
+        close enough to stay on screen (the camera shows half of
+        VIRTUAL_WIDTH either side), clamped to the map's own width. Its
+        hp/damage are scaled by the current difficulty tier exactly like
+        a SmallDemon's, so a longer run means a harder guardian.
+        """
+        player_rect = self.player.get_collision_rect()
+        side = 1 if player_rect.centerx < self.level.tilemap.pixel_width / 2 else -1
+
+        x = player_rect.centerx + side * BOSS_SPAWN_DISTANCE - BossReaper.WIDTH / 2
+        x = max(0, min(self.level.tilemap.pixel_width - BossReaper.WIDTH, x))
+        y = max(
+            0,
+            player_rect.bottom - settings.BOSS_HOVER_HEIGHT - BossReaper.HEIGHT,
+        )
+
+        self.boss = BossReaper(
+            x,
+            y,
+            self.level,
+            target=self.player,
+            hp_multiplier=self.current_tier["enemy_hp_multiplier"],
+            damage_multiplier=self.current_tier["enemy_damage_multiplier"],
+        )
+        self.level.entities.append(self.boss)
+        self.level.boss_active = True
+
     def _reset_level(self) -> None:
         """Chosen at the altar once its buff has ended (level.altar_choice
         == "reset") - regenerates the map's contents (fresh chests, at
@@ -411,6 +473,12 @@ class PlayState(BaseState):
         self.level.entities = [self.player]
         self.level.altar_phase = "inactive"
         self.level.altar_buff_timer = 0.0
+        # A reset can only be chosen before the guardian is summoned, but
+        # clearing these keeps "fresh level" honest in one place rather
+        # than relying on that.
+        self.boss = None
+        self.level.boss_active = False
+        self.level.boss_defeated = False
         self.spawn_timer = 0.0
         self._spawn_chests()
         self._spawn_altar()
@@ -438,11 +506,16 @@ class PlayState(BaseState):
             self.state_machine.change("game_over")
             return
 
-        if self.level.altar_choice == "final_level":
-            self.level.altar_choice = None
+        if self.level.boss_defeated:
+            self.level.boss_defeated = False
             self.state_machine.change(
                 "victory", player=self.player, elapsed_time=self.elapsed_time
             )
+            return
+
+        if self.level.altar_choice == "final_level":
+            self.level.altar_choice = None
+            self._spawn_boss()
             return
         if self.level.altar_choice == "reset":
             self.level.altar_choice = None
@@ -468,8 +541,10 @@ class PlayState(BaseState):
                 play_music("playing")
 
         # Demon spawning stops entirely once the altar's buff has ended,
-        # until the player picks an option back at the altar.
-        if self.level.altar_phase != "ended":
+        # until the player picks an option back at the altar - and stays
+        # off for the guardian fight itself, which is meant to be won
+        # one-on-one rather than while a horde piles in.
+        if self.level.altar_phase != "ended" and not self.level.boss_active:
             self.spawn_timer -= dt
             if self.spawn_timer <= 0:
                 spawn_interval = self.current_tier["spawn_interval"]
@@ -481,3 +556,5 @@ class PlayState(BaseState):
     def render(self, surface: pygame.Surface) -> None:
         self.level.render(surface, self.camera)
         self.hud.render(surface)
+        if self.boss is not None and not self.boss.is_dead:
+            boss_health_bar.render(surface, self.boss)

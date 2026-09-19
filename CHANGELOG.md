@@ -10,6 +10,46 @@ the major version stays `0`, breaking changes can land in any release.
 
 ### Added
 
+- The forest's zone guardian, **The Reaper** (`src/entities/BossReaper.py`,
+  `assets/graphics/boss/`) - the run's actual ending. The altar's "ended"
+  phase used to jump straight to `VictoryState` on `F`; that prompt is now
+  "Summon Guardian", and beating what it summons is what reaches the
+  victory screen (`Level.boss_defeated`, set by
+  `boss_states/DeathState.py`).
+  - Floats rather than walks: `BossReaper.update` deliberately skips
+    `Entity.update`, so it takes neither gravity nor tile collision and
+    drifts freely, bobbing on a sine wave toward a hover point beside the
+    player and clamped only by the map's own bounds.
+  - Five states off `boss-reaper.png`'s 12x6 grid of 144x128 cells
+    (`src/entities/boss_states/`): a floating idle that weights its next
+    attack by range and never repeats the last one; a **magic cast** that
+    drops a `BossMagic` detonation on wherever the player was standing,
+    telegraphed by a growing ring for `BOSS_MAGIC_TELEGRAPH` seconds so it
+    can be walked out of; a **teleport** (3 frames forward to vanish, the
+    same 3 backward to arrive) that reappears beside the player and chains
+    straight into a swipe; a 9-frame **scythe swipe** drawing
+    `slash-effect-norm.png`; and a slower 12-frame **long sweep** drawing
+    `slash-effect-wide.png` across most of a screen-width. Both swings land
+    their hit mid-animation on the frame the art shows the blade sweeping
+    through, re-checking the hitbox at that moment so a wind-up can be
+    dodged. Its entrance and death reuse the teleport-arrival frames and
+    `disappear.png` respectively, neither of which the sheet has a row for.
+  - Deliberately hard, since the intended loop is resetting the forest
+    several times to stack items before it is beatable: 1200 hp and
+    25/30/40 damage per attack, both scaled by the current difficulty tier
+    exactly like a `SmallDemon`'s, and **no hurt state at all** - a hit
+    registers as a damage number and nothing more, so unlike every other
+    enemy it cannot be stun-locked out of a wind-up. A player who never
+    moves dies in about ten seconds.
+  - Its health shows on a full-width bar across the top of the screen
+    (`src/ui/boss_health_bar.py`) rather than the overhead bar other
+    enemies get, clear of the HUD's gold counter and run-timer sign.
+  - Demon spawning stays off for the whole fight (it already stopped when
+    the altar's buff ended), and the altar itself can't be interacted with
+    while the guardian is alive. The fight is included in save/load
+    (`BossReaper.to_save_dict`/`apply_save_dict`); a reloaded guardian
+    replays its entrance rather than resuming mid-attack, and saves taken
+    before it existed still load.
 - Pause menu (`Esc`, `src/states/PauseMenuState.py`) with Resume/Save/Load/Quit,
   replacing `Esc`'s old instant-quit behavior. Pushed/popped from a
   `gale.state.StateStack` owned by `src.Game.DungeonProb` (`pause_stack`) -
