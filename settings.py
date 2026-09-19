@@ -367,6 +367,29 @@ ENEMY_HEALTH_BAR_BORDER_COLOR = (10, 10, 10)
 DAMAGE_NUMBER_COLOR = pygame.Color(190, 80, 230)
 DODGE_TEXT_COLOR = pygame.Color(255, 255, 255)  # "Dodged!" popup color
 
+# ==========================================================================
+# DEBUG (boss testing) - TEMPORARY, DELETE THIS WHOLE BLOCK WHEN DONE.
+#
+# Shortcuts for watching the zone guardian (src.entities.BossReaper)
+# without playing a full run up to the altar first. Both are ON right now;
+# set them to False for a normal run, or delete this block (and the three
+# marked call sites) once the guardian no longer needs watching. Every
+# place that reads one carries its own "DEBUG (boss testing)" comment, so
+# `grep -rn "DEBUG (boss testing)" .` finds every piece of this.
+#
+# DEBUG_START_WITH_BOSS: summon the guardian immediately on entering
+#   PlayState, right next to the player's spawn point, instead of waiting
+#   for the altar's buff to run out and pressing "interact" there. Note
+#   this also stops demons spawning and locks the altar for the rest of
+#   the run, exactly as a real summon does - i.e. it is a boss sandbox,
+#   not a normal run with a boss added on top.
+# DEBUG_PLAYER_ALWAYS_DODGES: make Player.dodge_chance return 1.0, so
+#   every incoming hit is dodged ("Dodged!" popup, no hp lost) and the
+#   guardian's whole attack rotation can be watched without dying to it.
+DEBUG_START_WITH_BOSS = True
+DEBUG_PLAYER_ALWAYS_DODGES = True
+# ======================== end DEBUG (boss testing) ========================
+
 # Debug overlay (src/debug.py, drawn from src.map.Level.render) - translucent
 # hurtbox/hitbox rectangles for tuning collision/attack-range sizes visually.
 # Just the default at startup - press 'h' in-game to toggle (src.Game.on_input).
