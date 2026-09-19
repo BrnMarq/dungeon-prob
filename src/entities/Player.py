@@ -211,8 +211,10 @@ class Player(Entity):
         """
         self.item_stacks[item_id] += 1
         if item_id == ITEM_HEART:
+            # Raise the ceiling before healing into it, so the heal is
+            # never capped away by the max_hp the same pickup just lifted.
             self.max_hp += settings.ITEM_HP_BONUS
-            self.hp += settings.ITEM_HP_BONUS
+            self.heal(settings.ITEM_HP_BONUS)
 
     @property
     def speed(self) -> float:
@@ -448,6 +450,38 @@ class Player(Entity):
         self.level.entities.append(
             DamageNumber(self.x + self.width / 2, self.y, amount)
         )
+
+    def heal(self, amount: int) -> int:
+        """Restores hp and floats a green "+N" popup above the player -
+        take_damage's counterpart, and the one way anything should give
+        the player health back (see src.entities.Altar, collect_item's
+        frozen heart).
+
+        The popup reports what was actually restored, not what was asked
+        for: healing is capped at max_hp, so asking for 40 at 20 hp short
+        of full shows "+20". A heal that would restore nothing (already
+        at full health, or a non-positive amount) is a no-op with no
+        popup at all, rather than a "+0" floating up.
+
+        :returns: The hp actually restored, 0 if none was.
+        """
+        if amount <= 0:
+            return 0
+
+        healed = min(amount, self.max_hp - self.hp)
+        if healed <= 0:
+            return 0
+
+        self.hp += healed
+        self.level.entities.append(
+            DamageNumber(
+                self.x + self.width / 2,
+                self.y,
+                f"+{healed}",
+                settings.HEAL_TEXT_COLOR,
+            )
+        )
+        return healed
 
     def attack_hitbox_rect(self) -> pygame.Rect:
         """The world-space rect AttackState lands its hit against - mostly

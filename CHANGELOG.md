@@ -75,6 +75,23 @@ the major version stays `0`, breaking changes can land in any release.
   - `src/states/PauseState.py`, an unreachable stub nothing ever
     transitioned to, is deleted along with its `state_machine` registration.
 
+- `Player.heal(amount)` (`src/entities/Player.py`) - `take_damage`'s
+  counterpart and now the only way anything gives the player health back.
+  Floats a green `+N` popup above his head (a `DamageNumber` in
+  `settings.HEAL_TEXT_COLOR`, the same treatment as the cat's spirit's
+  "Dodged!"), reporting what was actually restored rather than what was
+  asked for: the heal is capped at `max_hp`, so asking for 40 at 20 short
+  of full shows `+20`. A heal that would restore nothing - already at
+  full health, or a non-positive amount - is a no-op with no popup, and
+  the method returns the hp it actually restored.
+  - Both existing heals go through it instead of writing `hp` directly:
+    the altar's activation (`src/entities/Altar.py`, previously
+    `player.hp = player.max_hp`) and the frozen heart's immediate heal in
+    `Player.collect_item`, which raises `max_hp` first so the heal has
+    room and is never capped away by the ceiling that same pickup lifted.
+  - Levelling up still only raises the `max_hp` ceiling without topping
+    hp up, exactly as before - that was never a heal.
+
 ### Removed
 
 - The debug hitbox/hurtbox overlay and its `H` toggle, in full:
