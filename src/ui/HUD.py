@@ -1,5 +1,5 @@
 import math
-from typing import TypeVar
+from typing import Tuple, TypeVar
 
 import pygame
 
@@ -8,6 +8,8 @@ from gale.ui.progress_bar import ProgressBar
 from gale.ui.theme import get_default_theme
 
 import settings
+from src.items.definitions import ITEMS
+from src.ui import item_icon
 
 MARGIN = 4
 ICON_SIZE = 32
@@ -131,6 +133,24 @@ class HUD:
         self.timer_bar_rect = _scaled_rect(settings.RUN_TIMER_BAR_RECT)
         self.timer_label_rect = _scaled_rect(settings.RUN_TIMER_LABEL_RECT)
 
+        # Item bar - every item collected so far, from the screen's
+        # bottom-left corner rightward. Bottom-aligned with the ability
+        # icons' own baseline (not the block's, whose hp/xp bars hang
+        # below them) so the two rows read as one strip, and cut off
+        # MARGIN short of the block so a full inventory can never run
+        # into it. Rows fill left to right and stack upward from that
+        # baseline, which keeps the items collected first sitting still
+        # as later ones push a new row up above them.
+        self.item_icon_size = item_icon.size_for(settings.HUD_ITEM_ICON_SCALE)
+        self.item_bar_bottom = self.icons_y + ICON_SIZE
+        self.item_bar_width = block_left - MARGIN - MARGIN
+        # Composed once per change of inventory rather than every frame -
+        # the whole bar is one surface so it can be faded as a single
+        # piece (see settings.HUD_ITEM_BAR_ALPHA), and stacks only change
+        # on a pickup.
+        self._item_bar_surface = None
+        self._item_bar_key = None
+
     def render(self, surface: pygame.Surface) -> None:
         theme = get_default_theme()
         player = self.player
@@ -188,6 +208,7 @@ class HUD:
         )
 
         self._render_run_timer(surface)
+        self._render_item_bar(surface)
 
         pygame.draw.rect(surface, theme.background_color, self.level_badge_rect)
         pygame.draw.rect(
@@ -234,6 +255,96 @@ class HUD:
             )
 
             pygame.draw.rect(surface, theme.border_color, slot_rect, theme.border_width)
+
+    def _item_stacks(self) -> Tuple[Tuple[str, int], ...]:
+        """
+        :returns: (item_id, count) for each item actually collected, in
+            src.items.definitions.ITEMS' own registry order - the same
+            order (and the same omission of items with no stacks) the
+            end-of-run summary lists them in. Doubles as the cache key
+            for the composed bar, since it changes exactly when the bar
+            needs redrawing.
+        """
+        return tuple(
+            (item_id, self.player.item_stacks[item_id])
+            for item_id in ITEMS
+            if self.player.item_stacks[item_id] > 0
+        )
+
+    def _build_item_bar(
+        self, stacks: Tuple[Tuple[str, int], ...]
+    ) -> pygame.Surface:
+        """Lays the collected items out into one transparent surface -
+        icon with its "xN" count underneath, wrapping to a new row above
+        once a row reaches self.item_bar_width.
+
+        The whole thing is faded at the end with a single BLEND_RGBA_MULT
+        pass rather than per-surface set_alpha, which has no defined
+        meaning on the per-pixel-alpha surfaces the icons already are.
+        """
+        gap = settings.HUD_ITEM_ICON_GAP
+        cell_width = self.item_icon_size + gap
+        cell_height = self.item_icon_size + self.font.get_height()
+
+        per_row = max(1, (self.item_bar_width + gap) // cell_width)
+        rows = -(-len(stacks) // per_row)  # ceil
+
+        width = min(len(stacks), per_row) * cell_width - gap
+        bar = pygame.Surface((width, rows * cell_height), pygame.SRCALPHA)
+
+        for index, (item_id, count) in enumerate(stacks):
+            row, column = divmod(index, per_row)
+            x = column * cell_width
+            # Row 0 sits at the bottom, later rows stack above it.
+            y = bar.get_height() - (row + 1) * cell_height
+
+            item = ITEMS[item_id]
+            bar.blit(
+                item_icon.build(
+                    item["texture_id"],
+                    item["frame_index"],
+                    settings.HUD_ITEM_ICON_SCALE,
+                ),
+                (x, y),
+            )
+            # render_text's center=True centers on both axes, so the
+            # count's own half-height has to be added to clear the icon -
+            # centering it on the icon's bottom edge instead draws it
+            # half over the art.
+            render_text(
+                bar,
+                f"x{count}",
+                self.font,
+                x + self.item_icon_size // 2,
+                y + self.item_icon_size + self.font.get_height() // 2,
+                settings.HUD_ITEM_COUNT_COLOR,
+                center=True,
+                shadowed=True,
+            )
+
+        bar.fill(
+            (255, 255, 255, settings.HUD_ITEM_BAR_ALPHA),
+            special_flags=pygame.BLEND_RGBA_MULT,
+        )
+        return bar
+
+    def _render_item_bar(self, surface: pygame.Surface) -> None:
+        """Draws the collected-items strip, rebuilding it only when the
+        player's stacks have actually changed. Nothing is drawn at all
+        before the first pickup.
+        """
+        stacks = self._item_stacks()
+        if not stacks:
+            return
+
+        if stacks != self._item_bar_key:
+            self._item_bar_key = stacks
+            self._item_bar_surface = self._build_item_bar(stacks)
+
+        surface.blit(
+            self._item_bar_surface,
+            (MARGIN, self.item_bar_bottom - self._item_bar_surface.get_height()),
+        )
 
     def _render_run_timer(self, surface: pygame.Surface) -> None:
         """Top-of-screen signpost (assets/graphics/sign-timer.png) - the

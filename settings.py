@@ -456,6 +456,22 @@ RUN_TIMER_SCALE = 2
 # mm:ss readout stays neutral.
 RUN_TIMER_TEXT_COLOR = pygame.Color(255, 255, 255)
 
+# In-run item bar (src.ui.HUD) - every item collected so far, drawn from
+# the screen's bottom-left corner rightward, on the same baseline as the
+# ability icons and stopping short of them. Icons are built by
+# src.ui.item_icon at this scale, the same builder and scale the
+# end-of-run summary uses (src.states.VictoryState), so an item looks
+# identical in both places.
+HUD_ITEM_ICON_SCALE = 1.25
+HUD_ITEM_ICON_GAP = 6
+# Drawn semi-transparent: the bar sits over open gameplay space near the
+# player's feet, so it has to be readable at a glance without becoming
+# something to see past. 0 is invisible, 255 fully opaque - applied to
+# the whole composed bar (icons and their counts alike) so it fades as
+# one piece rather than in parts.
+HUD_ITEM_BAR_ALPHA = 150
+HUD_ITEM_COUNT_COLOR = pygame.Color(235, 235, 235)
+
 # Stat-boosting item pickups (src.items.Pickup / src.items.definitions) -
 # each is stackable (src.entities.Player.item_stacks), applying its bonus
 # again per pickup of the same item. Cane/knife/heart stack additively;

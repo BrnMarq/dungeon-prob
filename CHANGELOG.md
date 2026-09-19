@@ -127,6 +127,30 @@ the major version stays `0`, breaking changes can land in any release.
   (`settings.ITEM_OUTLINE_COLORS`). Items gained a `"name"` field in
   `src.items.definitions.ITEMS` to back it.
 
+- An in-run item bar in the HUD (`src.ui.HUD._render_item_bar`) - every
+  item collected so far, laid out from the screen's bottom-left corner
+  rightward on the same baseline as the ability icons, each with its
+  `xN` stack count below it. Previously the only place to see what you
+  were carrying was the end-of-run summary, by which point the run was
+  over.
+  - Drawn semi-transparent (`settings.HUD_ITEM_BAR_ALPHA`), since it sits
+    over open gameplay space near the player's feet. The whole bar is
+    composed onto one surface and faded in a single `BLEND_RGBA_MULT`
+    pass, so icons and counts fade as one piece - `set_alpha` has no
+    defined meaning on the per-pixel-alpha surfaces the icons already
+    are.
+  - Rows fill left to right and wrap *upward*, so items collected first
+    stay put as later ones push a new row above them, and the bar stops
+    short of the ability block - a full twelve-item inventory wraps to
+    two rows and still clears it.
+  - Composed only when the player's stacks actually change, not every
+    frame.
+- `src/ui/item_icon.py` (new): the item-icon builder (16x16 art plus its
+  rarity-colored outline, scaled as one composite) lifted out of
+  `src.states.VictoryState`, which now calls it too. Shared so the HUD
+  bar and the end-of-run summary can't drift apart, and because `ui/`
+  importing from `states/` would have been backwards.
+
 ### Changed
 
 - The thrown sword's detonation is a sprite animation rather than a
