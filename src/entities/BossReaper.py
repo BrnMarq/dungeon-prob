@@ -142,12 +142,22 @@ class BossReaper(Entity):
     def face_target(self) -> None:
         """Turns to face self.target - the direction every attack hitbox
         (and the slash sprite drawn over it) is built from.
+
+        NOTE the direction of this test: boss-reaper.png is drawn facing
+        LEFT (the hood's opening and the single red eye are on the art's
+        left side, and the scythe hangs to the left), unlike Marze.png
+        and small-demon.png, which face right. So self.flipped is what
+        makes the guardian face RIGHT, and it is set when the target is
+        to the right - the opposite of what every other entity here does.
+        assets/graphics/boss/slash-effect-norm.png and -wide.png are
+        drawn swinging left to match, so they take this same flag as-is
+        (see boss_states.SwingState).
         """
         if self.target is None:
             return
         self.flipped = (
             self.target.get_collision_rect().centerx
-            < self.get_collision_rect().centerx
+            > self.get_collision_rect().centerx
         )
 
     def horizontal_distance_to_target(self) -> float:
@@ -183,8 +193,10 @@ class BossReaper(Entity):
             width = settings.BOSS_SWIPE_HIT_WIDTH
             height = settings.BOSS_SWIPE_HIT_HEIGHT
 
+        # self.flipped means facing RIGHT here, not left - see
+        # face_target's note on the art's native direction.
         own = self.get_collision_rect()
-        x = own.left - width if self.flipped else own.right
+        x = own.right if self.flipped else own.left - width
         return pygame.Rect(x, own.centery - height / 2, width, height)
 
     def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
@@ -275,6 +287,32 @@ class BossReaper(Entity):
         self.x = max(0, min(self.tilemap.pixel_width - self.width, self.x))
         self.y = max(0, min(self.tilemap.pixel_height - self.height, self.y))
 
+    def _render_body(self, surface: pygame.Surface, camera: Any) -> None:
+        """Like mixins.DrawableMixin.render, but with a sprite_offset
+        that mirrors along with the sprite.
+
+        The guardian's art sits off-centre in its own 144px-wide cell
+        (the idle frames' opaque pixels span x 30-93, left of the cell's
+        middle), so flipping the frame moves the body 20px across the
+        cell. A single fixed offset therefore only lines the body up with
+        the hurtbox one way round - facing the other way it drew ~20px
+        off, and the guardian appeared to jump sideways every time it
+        turned. Mirroring the offset with the frame keeps the body on its
+        hurtbox in both directions, to within the half-pixel the art's
+        odd width costs.
+        """
+        image = render.sprite(self.texture_id, self.frame_index, self.flipped)
+        frame = settings.FRAMES[self.texture_id][self.frame_index]
+
+        offset_x, offset_y = self.sprite_offset
+        if self.flipped:
+            offset_x = frame.width - offset_x - self.width
+
+        dest = camera.apply(
+            pygame.Rect(self.x - offset_x, self.y - offset_y, self.width, self.height)
+        )
+        render.blit(surface, image, dest)
+
     def render(self, surface: pygame.Surface, camera: Any) -> None:
         """The guardian's own sheet normally; assets/graphics/boss/
         disappear.png once DeathState takes over (boss-reaper.png has no
@@ -282,7 +320,7 @@ class BossReaper(Entity):
         main sheet, since it is a different cell size entirely.
         """
         if not self.dying:
-            super().render(surface, camera)
+            self._render_body(surface, camera)
             return
 
         frame_index = min(
