@@ -149,7 +149,7 @@ class SmallDemon(Entity):
         """The world-space rect FollowState checks to trigger an attack and
         AttackState re-checks before actually landing the hit - single
         source of truth so "when to attack" and "does it land" never
-        disagree with each other or with the debug overlay.
+        disagree with each other.
 
         Just the strip past the entity's own hurtbox on the side it's
         currently facing (self.flipped - set by FollowState from
@@ -161,12 +161,3 @@ class SmallDemon(Entity):
         else:
             x = self.x + self.width
         return pygame.Rect(x, self.y, settings.DEMON_ATTACK_RANGE, self.height)
-
-    def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
-        """Debug-overlay hook (src/debug.py, src/map/Level.py) - only
-        exposed while actually mid-swing, not for the whole time FollowState
-        is chase-range-checking.
-        """
-        if not isinstance(self.state_machine.current, AttackState):
-            return None
-        return self.melee_range_rect()

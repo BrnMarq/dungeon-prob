@@ -1,5 +1,5 @@
 import math
-from typing import Any, List, Optional, TypeVar
+from typing import Any, List, TypeVar
 
 import pygame
 
@@ -67,17 +67,6 @@ class ThrownSword:
 
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)
-
-    def get_attack_hitbox_rect(self) -> Optional[pygame.Rect]:
-        """Debug-overlay hook (src/debug.py, src/map/Level.py) - the
-        in-flight collision rect while the sword can actually land a hit.
-        None while floating inert, since it deals no damage until
-        touched, or once it's detonated - self.is_dead by then, so
-        Level.render has already stopped calling this anyway.
-        """
-        if self.floating:
-            return None
-        return self.get_collision_rect()
 
     def update(self, dt: float) -> None:
         if self.floating:

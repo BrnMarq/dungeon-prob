@@ -70,14 +70,6 @@ class PlayState(BaseState):
         self._spawn_chests()
         self._spawn_altar()
 
-        # --- DEBUG (boss testing) - TEMPORARY, delete this block. ---------
-        # See settings.DEBUG_START_WITH_BOSS. Runs last so everything
-        # _spawn_boss reads (the player, the camera, the difficulty tier,
-        # self.boss) already exists.
-        if settings.DEBUG_START_WITH_BOSS:
-            self._spawn_boss()
-        # --- end DEBUG (boss testing) -------------------------------------
-
     def get_save_data(self) -> Dict[str, Any]:
         """Everything needed to fully reconstruct this run - see
         _load_from_save_data. Called by src.states.PauseMenuState's

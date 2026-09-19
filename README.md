@@ -36,7 +36,6 @@ python main.py
 | `W`              | *Ability slot 2 - not implemented yet* |
 | `E`              | Dash (brief invincibility + speed burst) |
 | `R`              | *Ability slot 4 - not implemented yet* |
-| `H`              | Toggle the hitbox/hurtbox debug overlay |
 | `Esc`            | Quit                              |
 
 The four ability keys (`Q`/`W`/`E`/`R`) map 1:1 to the four HUD ability
@@ -83,7 +82,5 @@ colors, key bindings) and asset registrations (`TEXTURES`, `FRAMES`,
   damaged.
 - **HUD**: HP bar, XP bar, level badge, and a 4-slot ability bar with
   live cooldown timers.
-- **Debug overlay** (`H`): translucent hurtbox/hitbox rectangles for
-  tuning collision and attack ranges.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full, detailed history.
