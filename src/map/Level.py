@@ -50,6 +50,15 @@ class Level:
         # "final_level" or "reset" - and acted on then cleared by
         # src.states.PlayState.update the same frame.
         self.altar_choice = None
+        # The zone guardian's lifecycle (src.entities.BossReaper).
+        # boss_active is set by src.states.PlayState the frame it summons
+        # the guardian and keeps the altar from being interacted with for
+        # the rest of the fight; boss_defeated is set by src.entities.
+        # boss_states.DeathState once the death animation finishes, and
+        # is what PlayState.update turns into VictoryState - beating the
+        # guardian, not reaching the altar, is what ends a run.
+        self.boss_active = False
+        self.boss_defeated = False
 
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(0, 0, self.tilemap.pixel_width, self.tilemap.pixel_height)
