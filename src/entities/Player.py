@@ -402,10 +402,6 @@ class Player(Entity):
         """Cat's spirit's stacks, linear and capped below 100% - read by
         take_damage.
         """
-        # --- DEBUG (boss testing) - TEMPORARY, delete these 3 lines. ------
-        if settings.DEBUG_PLAYER_ALWAYS_DODGES:
-            return 1.0
-        # --- end DEBUG (boss testing) -------------------------------------
         return min(
             settings.ITEM_DODGE_CHANCE_CAP,
             settings.ITEM_DODGE_CHANCE_BONUS * self.item_stacks[ITEM_CATS_SPIRIT],
