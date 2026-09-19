@@ -29,32 +29,32 @@ python main.py
 
 ## Controls
 
-| Key(s)      | Action                                                     |
-| ----------- | ---------------------------------------------------------- |
-| `A` / `←`   | Move left                                                  |
-| `D` / `→`   | Move right                                                 |
-| `Space`     | Jump (fixed height)                                        |
-| `↑` / `↓`   | Climb up/down, while touching a vine                       |
-| `Q`         | Attack - front-facing melee swing                          |
-| `W`         | Throw sword - projectile that lands and can be detonated   |
-| `E`         | Dash - gravity-cancelling burst, grants invincibility      |
-| `R`         | Rage - invincible burst damaging everything around you     |
-| `F`         | Interact - open a chest, use the altar                     |
-| `G`         | Reset the level, at an altar whose buff has ended          |
-| `Enter`     | Start (title screen) / play again (game-over, victory)     |
-| `Esc`       | Open/close the pause menu                                  |
+| Key(s)    | Action                                                   |
+| --------- | -------------------------------------------------------- |
+| `A` / `←` | Move left                                                |
+| `D` / `→` | Move right                                               |
+| `Space`   | Jump (fixed height)                                      |
+| `↑` / `↓` | Climb up/down, while touching a vine                     |
+| `Q`       | Attack - front-facing melee swing                        |
+| `W`       | Throw sword - projectile that lands and can be detonated |
+| `E`       | Dash - gravity-cancelling burst, grants invincibility    |
+| `R`       | Rage - invincible burst damaging everything around you   |
+| `F`       | Interact - open a chest, use the altar                   |
+| `G`       | Reset the level, at an altar whose buff has ended        |
+| `Enter`   | Start (title screen) / play again (game-over, victory)   |
+| `Esc`     | Open/close the pause menu                                |
 
 `Q`/`W`/`E`/`R` map 1:1 to the four HUD ability slots, each of which
 shows its own key letter and a live cooldown sweep.
 
 ## Abilities
 
-| Ability | Key | Damage | Cooldown | Notes |
-| ------- | --- | ------ | -------- | ----- |
-| Attack  | `Q` | 15     | none     | 20px reach in front, 0.3s swing; rooted on the ground, but keeps air control mid-air |
+| Ability | Key | Damage | Cooldown | Notes                                                                                                                |
+| ------- | --- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| Attack  | `Q` | 15     | none     | 20px reach in front, 0.3s swing; rooted on the ground, but keeps air control mid-air                                 |
 | Throw   | `W` | 15     | 4s       | Flies, then floats where it lands; touch it to detonate for 20 damage in a 48px radius, which also refunds your dash |
-| Dash    | `E` | -      | 3s       | 320px/s for 0.25s, cancels gravity, and grants 1s of invincibility (the HUD hp bar turns white) |
-| Rage    | `R` | 10 x 4 | 8s       | 1s of invincibility, hitting everything within 64px four times |
+| Dash    | `E` | -      | 3s       | 320px/s for 0.25s, cancels gravity, and grants 1s of invincibility (the HUD hp bar turns white)                      |
+| Rage    | `R` | 10 x 4 | 8s       | 1s of invincibility, hitting everything within 64px four times                                                       |
 
 ## Progression
 
@@ -72,20 +72,20 @@ shows its own key letter and a live cooldown sweep.
 Twelve items, every one of which stacks with itself. Chests roll from the
 common pool 90% of the time and the rare (red) pool 10%.
 
-| Item | Pool | Effect per stack |
-| ---- | ---- | ---------------- |
-| Walking Cane  | common | +10% movement speed |
-| Frozen Heart  | common | +20 maximum HP, and heals that much immediately |
-| Bloody Knife  | common | +10% damage |
-| Aegis Shield  | common | Incoming damage x0.92 (compounding, never reaches 0) |
-| Short Daggers | common | Attack duration x0.9 (compounding, floored at 0.05s) |
-| Hunter's Hat  | common | +5% critical chance; crits deal double damage |
-| Cat's Spirit  | common | +5% dodge chance, capped at 75% |
-| Loadstone     | common | Cooldowns x0.9 (compounding, floored at 0.2x) |
-| Blood Thirst  | rare   | Every landed crit cuts 0.25s off your cooldowns |
+| Item          | Pool   | Effect per stack                                                     |
+| ------------- | ------ | -------------------------------------------------------------------- |
+| Walking Cane  | common | +10% movement speed                                                  |
+| Frozen Heart  | common | +20 maximum HP, and heals that much immediately                      |
+| Bloody Knife  | common | +10% damage                                                          |
+| Aegis Shield  | common | Incoming damage x0.92 (compounding, never reaches 0)                 |
+| Short Daggers | common | Attack duration x0.9 (compounding, floored at 0.05s)                 |
+| Hunter's Hat  | common | +5% critical chance; crits deal double damage                        |
+| Cat's Spirit  | common | +5% dodge chance, capped at 75%                                      |
+| Loadstone     | common | Cooldowns x0.9 (compounding, floored at 0.2x)                        |
+| Blood Thirst  | rare   | Every landed crit cuts 0.25s off your cooldowns                      |
 | Samurai Sword | rare   | +5% chance any landed hit triggers a rage-style burst, capped at 50% |
-| Jimbo         | rare   | x4 damage while owned (does not stack further) |
-| Soul Box      | rare   | +1 base damage per kill, permanently |
+| Jimbo         | rare   | x4 damage while owned (does not stack further)                       |
+| Soul Box      | rare   | +1 base damage per kill, permanently                                 |
 
 Picking one up floats its name above the pickup, tinted by rarity, and
 adds it to the translucent item bar in the HUD's bottom-left corner -
@@ -101,12 +101,12 @@ enemy health, enemy damage, kill rewards, and how often demons spawn. The
 current tier's name and color show on the HUD's run-timer signpost, which
 also fills over a 20-minute run.
 
-| Tier | From | Spawn every | Enemy HP | Enemy damage | Rewards |
-| ---- | ---- | ----------- | -------- | ------------ | ------- |
-| Easy      | 0:00  | 4.0s | x1.0 | x1.0 | x1.0 |
-| Medium    | 3:00  | 3.0s | x1.3 | x1.2 | x1.3 |
-| Hard      | 6:00  | 2.5s | x1.6 | x1.4 | x1.6 |
-| Very Hard | 10:00 | 2.0s | x2.0 | x1.6 | x2.0 |
+| Tier      | From  | Spawn every | Enemy HP | Enemy damage | Rewards |
+| --------- | ----- | ----------- | -------- | ------------ | ------- |
+| Easy      | 0:00  | 4.0s        | x1.0     | x1.0         | x1.0    |
+| Medium    | 3:00  | 3.0s        | x1.3     | x1.2         | x1.3    |
+| Hard      | 6:00  | 2.5s        | x1.6     | x1.4         | x1.6    |
+| Very Hard | 10:00 | 2.0s        | x2.0     | x1.6         | x2.0    |
 
 ### Enemies
 
@@ -173,7 +173,6 @@ The repository follows the standard `gale` project layout:
 
 ```text
 ├── assets/
-│   ├── fonts/            # TrueType / OpenType font files (.ttf)
 │   ├── graphics/         # Spritesheets, textures, tilesets (.png)
 │   │   └── boss/         # The Reaper's sheet and its slash/disappear effects
 │   ├── maps/             # Tiled exported JSON maps and tileset data
